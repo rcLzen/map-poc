@@ -8,17 +8,17 @@ A Blazor WebAssembly Progressive Web App (PWA) for overlaying DWG-derived floor-
 
 | Feature | Status |
 |---|---|
-| Base map switching (OpenStreetMap / CartoDB / Mapbox) | ✅ Task 1–2 |
-| File upload panel (PNG, GeoJSON, ZIP) with progress | ✅ Task 3 |
-| 3-point georeferenced PNG overlay (Quick Align) | ✅ Task 4 |
-| Offline TMS tile pack served from gdal2tiles ZIP | ✅ Task 5 |
-| GeoJSON snapping layer (vertex + edge, Turf.js) | ✅ Task 6 |
-| Equipment marker placement with auto-snap | ✅ Task 7 |
-| Bootstrap-only UI controls, opacity sliders | ✅ Task 8 |
-| IndexedDB asset persistence (no re-upload on reload) | ✅ Task 9 |
-| Offline PWA — service worker caches all assets + tiles | ✅ Task 9 |
-| Map screenshot export (html2canvas) | ✅ Task 10 |
-| Equipment GeoJSON export | ✅ Task 10 |
+| Base map switching (OpenStreetMap / CartoDB / Mapbox) | ✅ |
+| File upload panel (PNG, GeoJSON, ZIP) with progress | ✅ |
+| 3-point georeferenced PNG overlay (Quick Align) | ✅ |
+| Offline XYZ tile pack served from gdal2tiles --xyz ZIP | ✅ |
+| GeoJSON snapping layer (vertex + edge, Turf.js) | ✅ |
+| Equipment marker placement with auto-snap | ✅ |
+| Bootstrap-only UI controls, opacity sliders | ✅ |
+| IndexedDB asset persistence (no re-upload on reload) | ✅ |
+| Offline PWA — service worker caches all assets + tiles | ✅ |
+| Map screenshot export (html2canvas) | ✅ |
+| Equipment GeoJSON export | ✅ |
 
 ---
 
@@ -66,9 +66,9 @@ Open the sidebar **ASSETS** section and upload:
 
 - **PNG** — a floor-plan or DWG export image (≤ 200 MB)
 - **GeoJSON** — pipe/network geometry for snapping (≤ 50 MB)
-- **ZIP** — a [gdal2tiles](https://gdal.org/programs/gdal2tiles.html) tile archive for offline TMS (≤ 500 MB)
+- **ZIP** — a gdal2tiles `--xyz` tile archive for offline XYZ tiles (≤ 500 MB)
 
-Assets are persisted to IndexedDB. After a page reload, they are immediately usable without re-uploading.
+Assets are persisted to IndexedDB. After a page reload they are immediately usable without re-uploading.
 
 ### 2 — Quick Align (3-Point Georeferencing)
 
@@ -79,17 +79,19 @@ Assets are persisted to IndexedDB. After a page reload, they are immediately usa
    - Type the matching pixel X and Y coordinates from your DWG or image editor.
 4. Click **Apply** — the PNG is pinned to the map using an affine transform.
 5. Use the **Opacity** slider to blend the overlay with the basemap.
-6. Click **Remove** to clear the overlay.
+6. Click the active **Quick Align** button again (or **Remove**) to dismiss the overlay.
 
 > **Tip**: Choose 3 control points that are well spread across the image (not collinear) for the most accurate alignment.
 
-### 3 — TMS Tiles (Offline Tile Pack)
+### 3 — XYZ Tiles (Offline Tile Pack)
 
-1. Upload a gdal2tiles ZIP (generated with `gdal2tiles.py -z 14-18 input.tif tiles/`).
-2. Select **OVERLAY MODE → TMS Tiles**.
-3. Click **Load Tiles** — JSZip decompresses the archive into an in-memory blob-URL cache.
-4. Click **Show on Map** — a custom Leaflet `GridLayer` serves tiles from the cache.
-5. Use the **Opacity** slider to blend.
+1. Generate a tile archive with gdal2tiles using the `--xyz` flag (see [Preparing Tile Data](#preparing-tile-data-with-gdal) below).
+2. Upload the ZIP in the **ASSETS → XYZ Tiles ZIP** slot.
+3. Select **OVERLAY MODE → XYZ Tiles**.
+4. Click **Load Tiles from ZIP** — JSZip decompresses the archive into an in-memory blob-URL cache.
+5. Click **Show on Map** — a custom Leaflet `GridLayer` serves tiles from memory using standard Z/X/Y addressing.
+6. Use the **Opacity** slider to blend.
+7. Click the active **XYZ Tiles** button again to dismiss the layer.
 
 ### 4 — Equipment Placement
 
@@ -97,13 +99,13 @@ Assets are persisted to IndexedDB. After a page reload, they are immediately usa
 2. Toggle **Snap to GeoJSON** if a GeoJSON was uploaded — new markers automatically snap to the nearest vertex or edge.
 3. Click **Add Equipment** to enter placement mode, then click on the map.
 4. Drag markers to reposition; the sidebar list updates in real time.
-5. Click **Export Equipment** or the EXPORT section to download all markers as a GeoJSON `FeatureCollection`.
+5. Click **Export Equipment** to download all markers as a GeoJSON `FeatureCollection`.
 
 ### 5 — Map Screenshot
 
 In the **EXPORT** section, click **Screenshot Map**. html2canvas captures the Leaflet viewport and downloads a timestamped PNG.
 
-> **Note**: Cross-origin basemap tiles (OSM, CartoDB, Mapbox) are rendered as blank squares due to browser CORS restrictions. Blob-sourced tiles (TMS ZIP cache, rotated PNG overlay) are captured correctly.
+> **Note**: Cross-origin basemap tiles (OSM, CartoDB, Mapbox) are rendered as blank squares due to browser CORS restrictions. Blob-sourced tiles (XYZ ZIP cache, Quick Align overlay) are captured correctly.
 
 ---
 
@@ -114,11 +116,11 @@ In the **EXPORT** section, click **Screenshot Map**. html2canvas captures the Le
 # Ubuntu: sudo apt install gdal-bin
 # macOS:  brew install gdal
 
-# Convert a georeferenced image to a TMS tile archive
+# Convert a georeferenced image to an XYZ tile archive
 gdal2tiles.py \
+  --xyz \
   --zoom=14-18 \
   --tiledriver=PNG \
-  --tmscompatible \
   input.tif \
   tiles/
 
@@ -126,7 +128,9 @@ gdal2tiles.py \
 zip -r tiles.zip tiles/
 ```
 
-Upload `tiles.zip` in the **ASSETS → ZIP** slot, then use **OVERLAY MODE → TMS Tiles**.
+Upload `tiles.zip` in the **ASSETS → XYZ Tiles ZIP** slot, then use **OVERLAY MODE → XYZ Tiles**.
+
+> The `--xyz` flag produces standard slippy-map Z/X/Y tile coordinates (north-up Y axis). Do **not** omit it; without `--xyz`, gdal2tiles produces TMS-style Y-inverted tiles that will not align correctly.
 
 ---
 
@@ -136,12 +140,12 @@ Upload `tiles.zip` in the **ASSETS → ZIP** slot, then use **OVERLAY MODE → T
 index.html
   CDN scripts (Leaflet, JSZip, Leaflet.ImageOverlay.Rotated, Turf.js, html2canvas)
   Local JS (leaflet-interop, asset-interop, idb-interop, align-interop,
-            tms-interop, snap-interop, equipment-interop, map-export-interop)
+            xyz-interop, snap-interop, equipment-interop, map-export-interop)
   blazor.webassembly.js
     → App.razor → MainLayout.razor (shell + sidebar)
         FileUploadPanel   — DwgAssetService (PNG / GeoJSON / ZIP upload + IDB persist)
         AlignmentPanel    — QuickAlignService (3-point affine georeferencing)
-        TmsTilePanel      — TmsTileService (ZIP → tile cache → GridLayer)
+        XyzTilePanel      — XyzTileService (ZIP → XYZ tile cache → GridLayer)
         EquipmentPanel    — EquipmentService + SnappingService
         MapExportPanel    — JS mapExportInterop (html2canvas + download)
         MapComponent      — Leaflet host (LeafletForBlazor 1.2.0)
@@ -153,10 +157,19 @@ index.html
 |---|---|---|
 | `DwgAssetService` | `assetInterop` + `idbInterop` | Blob URLs, localStorage, IndexedDB |
 | `QuickAlignService` | `alignInterop` | Rotated overlay, map click capture |
-| `TmsTileService` | `tmsInterop` | JSZip unpack, custom GridLayer |
+| `XyzTileService` | `xyzInterop` | JSZip unpack, custom GridLayer (XYZ) |
 | `SnappingService` | `snapInterop` | Turf.js nearest-point / nearest-on-line |
 | `EquipmentService` | `equipmentInterop` | SVG markers, drag events, GeoJSON download |
 | `MapExportPanel` | `mapExportInterop` | html2canvas, PNG/GeoJSON download |
+
+### Overlay modes
+
+| Mode | What it does |
+|---|---|
+| **Quick Align** | Pins an affine-transformed PNG to 3 user-picked map coordinates |
+| **XYZ Tiles** | Serves a gdal2tiles `--xyz` ZIP from memory as a Leaflet GridLayer |
+
+Clicking the active mode button again deactivates it (returns to base map only).
 
 ### Offline strategy (service-worker.published.js)
 
@@ -187,8 +200,8 @@ index.html
 
 ## Known Limitations
 
-- **Screenshot accuracy**: Cross-origin basemap tiles render as blank. Use the TMS ZIP overlay or the rotated PNG overlay — both use blob: URLs and are captured correctly.
-- **Large ZIPs**: Decompressing a full TMS archive in-browser keeps all tile blobs in memory. For very large tile sets (> 100 MB uncompressed), consider splitting by zoom level.
+- **Screenshot accuracy**: Cross-origin basemap tiles render as blank. Use the XYZ ZIP overlay or the Quick Align PNG — both use blob: URLs and are captured correctly.
+- **Large ZIPs**: Decompressing a full XYZ tile archive in-browser keeps all tile blobs in memory. For very large tile sets (> 100 MB uncompressed), consider splitting by zoom level.
 - **IDB storage quota**: Browser IndexedDB quotas vary (typically 50–80 % of available disk). Upload failures due to quota are logged to the browser console.
-- **Affine accuracy**: The 3-point alignment uses a 2D affine transform. For large areas or images with lens distortion, higher-order transforms (e.g. rubber-sheeting) would give better results.
+- **Affine accuracy**: The 3-point alignment uses a 2D affine transform. For large areas or images with lens distortion, higher-order transforms would give better results.
 - **No authentication**: This is a PoC with no server side. All data stays in the browser.

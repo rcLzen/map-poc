@@ -1,16 +1,20 @@
 @* ─────────────────────────────────────────────────────────────────────────
-   TmsTilePanel.razor
-   Loads tiles from the uploaded ZIP into the browser's in-memory tile cache,
+   XyzTilePanel.razor
+   Loads XYZ tiles from the uploaded ZIP into the browser's in-memory cache,
    then adds a custom Leaflet GridLayer that serves them without a tile server.
-   All C# helpers live in TmsTilePanel.razor.cs.
+
+   Tile ZIP must be generated with gdal2tiles --xyz (standard slippy-map
+   Z/X/Y layout).  No Y-axis inversion is applied.
+
+   All C# helpers live in XyzTilePanel.razor.cs.
    ───────────────────────────────────────────────────────────────────────── *@
 
-@inject TmsTileService  TmsService
+@inject XyzTileService  XyzService
 @inject DwgAssetService AssetService
 @implements IDisposable
 
-<section class="ctrl-section" aria-label="TMS tile controls">
-    <div class="ctrl-section__title">TMS TILES</div>
+<section class="ctrl-section" aria-label="XYZ tile controls">
+    <div class="ctrl-section__title">XYZ TILES</div>
 
     @if (IsZipReady())
     {
@@ -21,9 +25,9 @@
                 Load Tiles from ZIP
             </button>
 
-            @if (TmsService.LastError is not null)
+            @if (XyzService.LastError is not null)
             {
-                <div class="tms-error">@TmsService.LastError</div>
+                <div class="xyz-error">@XyzService.LastError</div>
             }
         }
         else if (IsLoading())
@@ -31,22 +35,22 @@
             <div class="upload-progress-wrap">
                 <div class="upload-progress-label">Loading tiles&hellip;</div>
                 <div class="upload-progress-track">
-                    <div class="upload-progress-bar tms-loading-bar"></div>
+                    <div class="upload-progress-bar xyz-loading-bar"></div>
                 </div>
             </div>
         }
         else
         {
             @* Ready state *@
-            <div class="tms-info">
-                <span class="tms-count">@(TmsService.TileCount) tiles</span>
-                @if (TmsService.ZoomLevels.Length > 0)
+            <div class="xyz-info">
+                <span class="xyz-count">@(XyzService.TileCount) tiles</span>
+                @if (XyzService.ZoomLevels.Length > 0)
                 {
-                    <span class="tms-zooms">Zoom @(FormatZooms())</span>
+                    <span class="xyz-zooms">Zoom @(FormatZooms())</span>
                 }
             </div>
 
-            @if (!TmsService.IsLayerVisible)
+            @if (!XyzService.IsLayerVisible)
             {
                 <button class="btn btn-sm btn-success w-100" @onclick="ShowAsync">
                     Show on Map
@@ -69,7 +73,7 @@
     }
     else
     {
-        <p class="ctrl-placeholder">Upload a TMS tiles ZIP to enable.</p>
+        <p class="ctrl-placeholder">Upload an XYZ tiles ZIP to enable.</p>
     }
 
 </section>
@@ -78,15 +82,15 @@
 
     protected override void OnInitialized()
     {
-        TmsService.OnChanged          += HandleChanged;
-        AssetService.OnAssetsChanged  += HandleChanged;
+        XyzService.OnChanged         += HandleChanged;
+        AssetService.OnAssetsChanged += HandleChanged;
     }
 
     private void HandleChanged() => InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
-        TmsService.OnChanged          -= HandleChanged;
-        AssetService.OnAssetsChanged  -= HandleChanged;
+        XyzService.OnChanged         -= HandleChanged;
+        AssetService.OnAssetsChanged -= HandleChanged;
     }
 }

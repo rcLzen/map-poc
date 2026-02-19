@@ -61,8 +61,10 @@
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
             crossorigin="anonymous"></script>
 
-    <!-- Leaflet.ImageOverlay.Rotated – 3-point georeferenced overlay (Task 4) -->
-    <script src="js/ImageOverlay.Rotated.js"></script>
+    <!-- Leaflet.ImageOverlay.Rotated – 3-point georeferenced overlay (Task 4).
+         Bundled locally (wwwroot/js/) to avoid CDN 404.
+         Must load after Leaflet (needs window.L) and before align-interop. -->
+    <script src="js/Leaflet.ImageOverlay.Rotated.js"></script>
 
     <!-- Turf.js v6 – spatial math for bounding-box checks + GeoJSON snapping (Tasks 4 + 6) -->
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"
@@ -75,7 +77,8 @@
          Must load after JSZip and before Blazor so DwgAssetService can call it. -->
     <script src="js/asset-interop.js"></script>
 
-    <!-- Leaflet JS interop bridge – must load after Leaflet, before Blazor -->
+    <!-- Leaflet JS interop bridge – must load after Leaflet, before Blazor.
+         Exposes waitForMap() / notifyMapReady() used by all other interop files. -->
     <script src="js/leaflet-interop.js"></script>
 
     <!-- html2canvas 1.4.1 – map screenshot export (Task 10).
@@ -86,8 +89,8 @@
     <!-- Alignment interop – rotated overlay + one-time map click capture (Task 4) -->
     <script src="js/align-interop.js"></script>
 
-    <!-- TMS tile interop – ZIP → in-memory tile cache + custom GridLayer (Task 5) -->
-    <script src="js/tms-interop.js"></script>
+    <!-- XYZ tile interop – ZIP → in-memory XYZ tile cache + custom GridLayer -->
+    <script src="js/xyz-interop.js"></script>
 
     <!-- Snap interop – Turf.js nearest-point/nearest-on-line queries (Task 6) -->
     <script src="js/snap-interop.js"></script>

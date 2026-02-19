@@ -21,7 +21,7 @@ public enum UploadStatus
 }
 
 /// <summary>
-/// A single entry found inside a TMS tile ZIP, returned by JSZip preview.
+/// A single entry found inside an XYZ tile ZIP, returned by JSZip preview.
 /// Property names use JsonPropertyName so Blazor JS interop camelCase → PascalCase
 /// deserialisation works without relying on case-insensitive fallback.
 /// </summary>

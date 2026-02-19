@@ -3,9 +3,25 @@
  * Bridge between Blazor C# and the Leaflet map instance managed by
  * LeafletForBlazor. All public functions live under `window.leafletInterop`.
  *
- * LeafletForBlazor exposes its Leaflet map object on `window.LeafletBlazorMap`
- * after the onLoadMap event fires in C#. We only call map methods once that
- * variable exists.
+ * Map-readiness guard
+ * ───────────────────
+ * LeafletForBlazor sets `window.LeafletBlazorMap` around the same time it
+ * fires the C# `onLoadMap` callback — but the exact ordering is not
+ * guaranteed.  Every function that needs the map calls `waitForMap()`, which:
+ *
+ *   • Fast path  (zero overhead once the map is up): if `window.LeafletBlazorMap`
+ *     is already set, returns `Promise.resolve(map)` synchronously.
+ *   • Slow path  (startup only, milliseconds): polls at 20 ms intervals until
+ *     the reference is set, then resolves.  Times out after 6 s with a
+ *     rejected Promise (surfaced as a JS console error).
+ *
+ * Polling is used deliberately instead of a one-shot signal/Promise because
+ * the signal approach would resolve with `undefined` if called before
+ * LeafletForBlazor assigns `window.LeafletBlazorMap`, producing silent
+ * TypeErrors on all subsequent map operations.
+ *
+ * Other interop modules (align-interop, equipment-interop) call
+ * `window.leafletInterop.waitForMap()` for the same guard.
  *
  * Tile-layer ownership strategy
  * ─────────────────────────────
@@ -19,22 +35,46 @@
 
 window.leafletInterop = (() => {
 
+    // ── Map-readiness polling ─────────────────────────────────────────────────
+
+    /**
+     * Returns a Promise<L.Map> that resolves once `window.LeafletBlazorMap`
+     * is set by LeafletForBlazor.
+     *
+     * Fast path: if the map reference is already set the Promise resolves in
+     * the current microtask (no polling started).
+     *
+     * Slow path: checks every 20 ms, gives up after 300 attempts (~6 s).
+     *
+     * @returns {Promise<L.Map>}
+     */
+    function waitForMap() {
+        if (window.LeafletBlazorMap) {
+            return Promise.resolve(window.LeafletBlazorMap);
+        }
+
+        return new Promise(function (resolve, reject) {
+            var attempts = 0;
+            var id = setInterval(function () {
+                if (window.LeafletBlazorMap) {
+                    clearInterval(id);
+                    console.info('[leafletInterop] map ready after', attempts * 20, 'ms');
+                    resolve(window.LeafletBlazorMap);
+                } else if (++attempts > 300) {          // 6 s timeout
+                    clearInterval(id);
+                    reject(new Error('[leafletInterop] Timed out waiting for Leaflet map (>6 s)'));
+                }
+            }, 20);
+        });
+    }
+
     // ── State ────────────────────────────────────────────────────────────────
+
     /** The currently active base tile layer, or null before first swap. */
     let _baseLayer = null;
 
     /** Active ImageOverlay instances keyed by overlay-id string. */
     const _overlayLayers = {};
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    /**
-     * Returns the Leaflet map instance created by LeafletForBlazor,
-     * or null if it has not yet been initialised.
-     */
-    function getMap() {
-        return window.LeafletBlazorMap ?? null;
-    }
 
     // ── Base-layer management ─────────────────────────────────────────────────
 
@@ -42,17 +82,7 @@ window.leafletInterop = (() => {
      * Replaces the current base tile layer with a new one.
      *
      * Called by MapComponent.SetBaseMapAsync after the map is ready.
-     * Also called from OnMapReady to apply the initial default layer.
-     *
-     * Expected UI result after each call
-     * ────────────────────────────────────
-     *  OSM Light   → colourful street map, familiar OpenStreetMap colours
-     *  OSM Dark    → CartoDB Dark Matter – charcoal background, white streets
-     *  Carto Light → CartoDB Positron – very pale grey, minimal labels;
-     *                best backdrop for DWG drawing overlays
-     *  Carto Dark  → CartoDB Dark Matter (same as OSM dark)
-     *  Mapbox Light → polished Mapbox Streets v12 with rich POI icons
-     *  Mapbox Dark  → Mapbox Dark v11 – deep navy, amber road labels
+     * Also called from OnLeafletMapLoaded to apply the initial default layer.
      *
      * @param {string}  urlTemplate  Leaflet tile URL template ({z}/{x}/{y})
      * @param {string}  attribution  HTML attribution string
@@ -60,12 +90,8 @@ window.leafletInterop = (() => {
      * @param {number}  tileSize     Tile pixel size – 256 for most providers
      * @param {number}  zoomOffset   Zoom offset – 0 for 256 px tiles
      */
-    function setBaseLayer(urlTemplate, attribution, maxZoom, tileSize, zoomOffset) {
-        const map = getMap();
-        if (!map) {
-            console.warn('[leafletInterop] setBaseLayer: map not ready yet');
-            return;
-        }
+    async function setBaseLayer(urlTemplate, attribution, maxZoom, tileSize, zoomOffset) {
+        const map = await waitForMap();
 
         // Collect all existing tile layers (LeafletForBlazor's initial layer
         // plus any previously added by us) so we can remove them safely.
@@ -94,15 +120,13 @@ window.leafletInterop = (() => {
 
     /**
      * Flies the map to the given coordinates at the specified zoom level.
-     * Uses Leaflet's built-in flyTo animation (1 second duration).
      *
      * @param {number} lat
      * @param {number} lng
      * @param {number} zoom
      */
-    function flyTo(lat, lng, zoom) {
-        const map = getMap();
-        if (!map) { console.warn('[leafletInterop] flyTo: map not ready'); return; }
+    async function flyTo(lat, lng, zoom) {
+        const map = await waitForMap();
         map.flyTo([lat, lng], zoom, { animate: true, duration: 1 });
     }
 
@@ -123,9 +147,8 @@ window.leafletInterop = (() => {
      *   opacity:      number
      * }>} overlays
      */
-    function syncOverlays(overlays) {
-        const map = getMap();
-        if (!map) { console.warn('[leafletInterop] syncOverlays: map not ready'); return; }
+    async function syncOverlays(overlays) {
+        const map = await waitForMap();
 
         const incomingIds = new Set(overlays.map(o => o.id));
 
@@ -161,10 +184,10 @@ window.leafletInterop = (() => {
     /**
      * Removes all image overlays from the map and clears the internal registry.
      */
-    function clearAllOverlays() {
-        const map = getMap();
+    async function clearAllOverlays() {
+        const map = await waitForMap();
         for (const layer of Object.values(_overlayLayers)) {
-            if (map) map.removeLayer(layer);
+            map.removeLayer(layer);
         }
         for (const key of Object.keys(_overlayLayers)) {
             delete _overlayLayers[key];
@@ -175,13 +198,14 @@ window.leafletInterop = (() => {
 
     /**
      * Returns the current Leaflet map zoom level.
-     * Used by EquipmentService to convert pixel snap radius → degree tolerance.
+     * Only called from user interactions (snapping), so the map is always
+     * ready; no await needed.
      */
     function getZoom() {
-        const map = getMap();
+        const map = window.LeafletBlazorMap;
         return map ? map.getZoom() : 15;
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
-    return { setBaseLayer, flyTo, syncOverlays, clearAllOverlays, getZoom };
+    return { waitForMap, setBaseLayer, flyTo, syncOverlays, clearAllOverlays, getZoom };
 })();

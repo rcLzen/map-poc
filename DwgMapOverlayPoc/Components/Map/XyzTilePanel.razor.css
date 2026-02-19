@@ -1,26 +1,26 @@
-/* ── TMS info ──────────────────────────────────────────────────────────────── */
+/* ── XYZ tile info ──────────────────────────────────────────────────────────── */
 
-.tms-info {
+.xyz-info {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
     margin-bottom: 0.45rem;
 }
 
-.tms-count {
+.xyz-count {
     font-size: 0.78rem;
     color: #4fc3f7;
     font-weight: 600;
 }
 
-.tms-zooms {
+.xyz-zooms {
     font-size: 0.72rem;
     color: #9ea8c0;
 }
 
 /* ── Error ─────────────────────────────────────────────────────────────────── */
 
-.tms-error {
+.xyz-error {
     margin-top: 0.4rem;
     font-size: 0.72rem;
     color: #ef9a9a;
@@ -32,12 +32,12 @@
 
 /* ── Loading bar (infinite pulse) ─────────────────────────────────────────── */
 
-.tms-loading-bar {
+.xyz-loading-bar {
     width: 40%;
-    animation: tms-pulse 1.2s ease-in-out infinite alternate;
+    animation: xyz-pulse 1.2s ease-in-out infinite alternate;
 }
 
-@keyframes tms-pulse {
+@keyframes xyz-pulse {
     from { opacity: 0.4; width: 20%; }
     to   { opacity: 1;   width: 90%; }
 }

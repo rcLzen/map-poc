@@ -4,8 +4,13 @@
  *
  * Requires:
  *   - window.L (Leaflet 1.9)
- *   - Leaflet.ImageOverlay.Rotated (loaded before Blazor)
+ *   - Leaflet.ImageOverlay.Rotated (js/Leaflet.ImageOverlay.Rotated.js)
+ *   - window.leafletInterop (leaflet-interop.js — provides waitForMap)
  *   - window.LeafletBlazorMap (set by LeafletForBlazor after map init)
+ *
+ * All functions that touch the map await window.leafletInterop.waitForMap()
+ * so calls that arrive during startup (e.g. IDB-restored overlay) queue
+ * safely instead of failing with "map not ready yet".
  */
 
 window.alignInterop = (() => {
@@ -13,23 +18,18 @@ window.alignInterop = (() => {
     let _rotatedOverlay = null;
     let _clickHandler   = null;
 
-    function getMap() {
-        return window.LeafletBlazorMap ?? null;
-    }
-
     // ── Overlay management ───────────────────────────────────────────────────
 
     /**
      * Replace (or add) the rotated image overlay.
-     * @param {string} blobUrl   Browser Blob URL for the PNG.
-     * @param {number[]} tl      [lat, lng] of the image top-left corner.
-     * @param {number[]} tr      [lat, lng] of the image top-right corner.
-     * @param {number[]} bl      [lat, lng] of the image bottom-left corner.
-     * @param {number}   opacity 0–1 opacity value.
+     * @param {string}   blobUrl  Browser Blob URL for the PNG.
+     * @param {number[]} tl       [lat, lng] of the image top-left corner.
+     * @param {number[]} tr       [lat, lng] of the image top-right corner.
+     * @param {number[]} bl       [lat, lng] of the image bottom-left corner.
+     * @param {number}   opacity  0–1 opacity value.
      */
-    function setRotatedOverlay(blobUrl, tl, tr, bl, opacity) {
-        const map = getMap();
-        if (!map) { console.warn('[alignInterop] setRotatedOverlay: map not ready'); return; }
+    async function setRotatedOverlay(blobUrl, tl, tr, bl, opacity) {
+        const map = await window.leafletInterop.waitForMap();
 
         if (_rotatedOverlay) {
             map.removeLayer(_rotatedOverlay);
@@ -47,10 +47,10 @@ window.alignInterop = (() => {
         console.info('[alignInterop] rotated overlay added');
     }
 
-    function clearRotatedOverlay() {
-        const map = getMap();
+    async function clearRotatedOverlay() {
+        const map = await window.leafletInterop.waitForMap();
         if (_rotatedOverlay) {
-            if (map) map.removeLayer(_rotatedOverlay);
+            map.removeLayer(_rotatedOverlay);
             _rotatedOverlay = null;
             console.info('[alignInterop] rotated overlay removed');
         }
@@ -67,11 +67,13 @@ window.alignInterop = (() => {
     /**
      * Attach a one-time map click listener.
      * On click, calls dotNetRef.invokeMethodAsync(methodName, lat, lng).
+     * Awaits map readiness so the button can be clicked immediately on load
+     * without hitting the startup race condition.
      */
-    function startMapClickCapture(dotNetRef, methodName) {
-        const map = getMap();
-        if (!map) { console.warn('[alignInterop] startMapClickCapture: map not ready'); return; }
+    async function startMapClickCapture(dotNetRef, methodName) {
+        const map = await window.leafletInterop.waitForMap();
 
+        // Cancel any previous pending capture before registering a new one.
         stopMapClickCapture();
 
         _clickHandler = function (e) {
@@ -84,7 +86,8 @@ window.alignInterop = (() => {
     }
 
     function stopMapClickCapture() {
-        const map = getMap();
+        // Synchronous — only detaches from the map if we already have a ref.
+        const map = window.LeafletBlazorMap;
         if (_clickHandler) {
             if (map) map.off('click', _clickHandler);
             _clickHandler = null;

@@ -8,12 +8,13 @@
 
    Cross-origin tile note: OSM / CartoDB / Mapbox tiles are served without
    permissive CORS headers, so html2canvas renders them as blank squares.
-   TMS tiles loaded from the in-memory ZIP cache (blob: URLs) are captured
+   XYZ tiles loaded from the in-memory ZIP cache (blob: URLs) are captured
    correctly.  The rotated PNG overlay (also a blob: URL) is captured too.
    ───────────────────────────────────────────────────────────────────────── *@
 
 @inject IJSRuntime JS
 @inject EquipmentService EquipService
+@implements IDisposable
 
 <section class="ctrl-section" aria-label="Map export">
     <div class="ctrl-section__title">EXPORT</div>
@@ -54,3 +55,15 @@
     }
 
 </section>
+
+@code {
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            EquipService.OnChanged += HandleChanged;
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+        => EquipService.OnChanged -= HandleChanged;
+}

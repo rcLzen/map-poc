@@ -146,7 +146,9 @@
         try
         {
             // Take ownership of the tile layer via JS interop.
-            // This also establishes _baseLayer in the JS module for future swaps.
+            // setBaseLayer awaits waitForMap() internally, which polls until
+            // window.LeafletBlazorMap is set — handles any ordering gap between
+            // LeafletForBlazor firing onLoadMap and assigning the map reference.
             await ApplyTileSourceAsync(_currentSource);
 
             // Sync any DWG overlays that were queued before the map loaded.

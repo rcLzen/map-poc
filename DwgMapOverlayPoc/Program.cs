@@ -21,7 +21,7 @@ builder.Services.AddScoped<DwgAssetService>(); // file uploads: PNG / GeoJSON / 
 
 // Tasks 4–7 services
 builder.Services.AddScoped<QuickAlignService>(); // 3-point georeferencing + affine math
-builder.Services.AddScoped<TmsTileService>();    // ZIP → in-memory tile cache
+builder.Services.AddScoped<XyzTileService>();    // ZIP → in-memory XYZ tile cache
 builder.Services.AddScoped<SnappingService>();   // GeoJSON vertex/edge snap via Turf.js
 builder.Services.AddScoped<EquipmentService>();  // marker CRUD, snap, GeoJSON export
 

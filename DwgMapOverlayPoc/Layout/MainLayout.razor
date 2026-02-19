@@ -121,28 +121,25 @@
 
                 @* ── OVERLAY MODE section ───────────────────────────────────
                    Selects which overlay mode is active:
-                     None       – no overlay (base map only)
-                     QuickAlign – 3-point georeferenced PNG overlay (Task 4)
-                     TMS        – offline tile pack from ZIP (Task 5)
+                     QuickAlign – 3-point georeferenced PNG overlay
+                     Xyz        – pre-tiled XYZ pack from a gdal2tiles --xyz ZIP
+                   Clicking the active button deactivates it (returns to no overlay).
                    ─────────────────────────────────────────────────────────── *@
                 <section class="ctrl-section" aria-label="Overlay mode">
                     <div class="ctrl-section__title">OVERLAY MODE</div>
                     <div class="btn-group btn-group-sm overlay-mode-group" role="group"
                          aria-label="Overlay mode">
                         <button type="button"
-                                class="btn @(_overlayMode == OverlayMode.None       ? "btn-primary" : "btn-outline-secondary")"
-                                @onclick="@(() => SetOverlayMode(OverlayMode.None))">
-                            None
-                        </button>
-                        <button type="button"
                                 class="btn @(_overlayMode == OverlayMode.QuickAlign ? "btn-primary" : "btn-outline-secondary")"
-                                @onclick="@(() => SetOverlayMode(OverlayMode.QuickAlign))">
+                                @onclick="@(() => SetOverlayMode(OverlayMode.QuickAlign))"
+                                aria-pressed="@(_overlayMode == OverlayMode.QuickAlign)">
                             Quick&nbsp;Align
                         </button>
                         <button type="button"
-                                class="btn @(_overlayMode == OverlayMode.Tms        ? "btn-primary" : "btn-outline-secondary")"
-                                @onclick="@(() => SetOverlayMode(OverlayMode.Tms))">
-                            TMS&nbsp;Tiles
+                                class="btn @(_overlayMode == OverlayMode.Xyz ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => SetOverlayMode(OverlayMode.Xyz))"
+                                aria-pressed="@(_overlayMode == OverlayMode.Xyz)">
+                            XYZ&nbsp;Tiles
                         </button>
                     </div>
                 </section>
@@ -152,9 +149,9 @@
                 {
                     <AlignmentPanel />
                 }
-                else if (_overlayMode == OverlayMode.Tms)
+                else if (_overlayMode == OverlayMode.Xyz)
                 {
-                    <TmsTilePanel />
+                    <XyzTilePanel />
                 }
 
                 @* ── EQUIPMENT section – always visible ───────────────────── *@
@@ -193,7 +190,7 @@
     /// <summary>Which overlay mode is currently active in the sidebar.</summary>
     private OverlayMode _overlayMode = OverlayMode.None;
 
-    private enum OverlayMode { None, QuickAlign, Tms }
+    private enum OverlayMode { None, QuickAlign, Xyz }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Lifecycle
@@ -217,9 +214,10 @@
     // Overlay mode
     // ─────────────────────────────────────────────────────────────────────────
 
+    // Clicking the already-active button deactivates it (toggle behaviour).
     private void SetOverlayMode(OverlayMode mode)
     {
-        _overlayMode = mode;
+        _overlayMode = _overlayMode == mode ? OverlayMode.None : mode;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

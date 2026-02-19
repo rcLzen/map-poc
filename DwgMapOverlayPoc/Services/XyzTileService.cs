@@ -3,45 +3,48 @@ using Microsoft.JSInterop;
 
 namespace DwgMapOverlayPoc.Services;
 
-public enum TmsStatus { Idle, Loading, Ready, Error }
+public enum XyzStatus { Idle, Loading, Ready, Error }
 
 /// <summary>
-/// Loads tiles from a gdal2tiles-style ZIP into the browser's memory and
+/// Loads tiles from a gdal2tiles --xyz ZIP into the browser's memory and
 /// exposes them as a custom Leaflet GridLayer via JS interop.
+///
+/// Expected ZIP layout: {z}/{x}/{y}.png — standard XYZ / slippy-map tiles.
+/// Generate with: gdal2tiles.py --xyz --zoom=&lt;min&gt;-&lt;max&gt; input.tif tiles/
 /// </summary>
-public sealed class TmsTileService(IJSRuntime js)
+public sealed class XyzTileService(IJSRuntime js)
 {
     private readonly IJSRuntime _js = js;
 
-    public TmsStatus Status        { get; private set; } = TmsStatus.Idle;
-    public int       TileCount     { get; private set; }
-    public int[]     ZoomLevels    { get; private set; } = [];
-    public bool      IsLayerVisible { get; private set; }
-    public string?   LastError     { get; private set; }
+    public XyzStatus Status         { get; private set; } = XyzStatus.Idle;
+    public int        TileCount     { get; private set; }
+    public int[]      ZoomLevels    { get; private set; } = [];
+    public bool       IsLayerVisible { get; private set; }
+    public string?    LastError     { get; private set; }
 
     public event Action? OnChanged;
 
     public async Task LoadAsync(string zipBlobUrl)
     {
-        Status    = TmsStatus.Loading;
-        TileCount = 0;
+        Status     = XyzStatus.Loading;
+        TileCount  = 0;
         ZoomLevels = [];
         LastError  = null;
         OnChanged?.Invoke();
 
         try
         {
-            var result = await _js.InvokeAsync<TmsLoadResult>(
-                "tmsInterop.loadTilesFromZip", zipBlobUrl);
+            var result = await _js.InvokeAsync<XyzLoadResult>(
+                "xyzInterop.loadTilesFromZip", zipBlobUrl);
 
             TileCount  = result.TileCount;
             ZoomLevels = result.Zooms ?? [];
-            Status     = TmsStatus.Ready;
+            Status     = XyzStatus.Ready;
         }
         catch (Exception ex)
         {
             LastError = ex.Message;
-            Status    = TmsStatus.Error;
+            Status    = XyzStatus.Error;
         }
 
         OnChanged?.Invoke();
@@ -51,7 +54,7 @@ public sealed class TmsTileService(IJSRuntime js)
     {
         try
         {
-            await _js.InvokeVoidAsync("tmsInterop.addTmsLayer");
+            await _js.InvokeVoidAsync("xyzInterop.addXyzLayer");
             IsLayerVisible = true;
         }
         catch (JSException ex) { LastError = ex.Message; }
@@ -63,7 +66,7 @@ public sealed class TmsTileService(IJSRuntime js)
     {
         try
         {
-            await _js.InvokeVoidAsync("tmsInterop.removeTmsLayer");
+            await _js.InvokeVoidAsync("xyzInterop.removeXyzLayer");
             IsLayerVisible = false;
         }
         catch (JSException ex) { LastError = ex.Message; }
@@ -75,14 +78,14 @@ public sealed class TmsTileService(IJSRuntime js)
     {
         try
         {
-            await _js.InvokeVoidAsync("tmsInterop.setTmsLayerOpacity", opacity);
+            await _js.InvokeVoidAsync("xyzInterop.setXyzLayerOpacity", opacity);
         }
         catch (JSException) { }
     }
 
-    // ── JSON shape returned by tmsInterop.loadTilesFromZip ───────────────────
+    // ── JSON shape returned by xyzInterop.loadTilesFromZip ───────────────────
 
-    private sealed record TmsLoadResult(
+    private sealed record XyzLoadResult(
         [property: JsonPropertyName("tileCount")] int    TileCount,
         [property: JsonPropertyName("zooms")]     int[]? Zooms);
 }

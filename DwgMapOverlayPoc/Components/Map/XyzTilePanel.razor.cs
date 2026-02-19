@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Components;
 
 namespace DwgMapOverlayPoc.Components.Map;
 
-/// <summary>Code-behind for TmsTilePanel.razor.</summary>
-public partial class TmsTilePanel
+/// <summary>Code-behind for XyzTilePanel.razor.</summary>
+public partial class XyzTilePanel
 {
     private int _opacityPct = 75;
 
@@ -16,18 +16,18 @@ public partial class TmsTilePanel
         !AssetService.ZipAsset.IsStub &&
         AssetService.ZipAsset.BlobUrl is not null;
 
-    private bool IsIdle()    => TmsService.Status == TmsStatus.Idle;
-    private bool IsLoading() => TmsService.Status == TmsStatus.Loading;
-    private bool IsError()   => TmsService.Status == TmsStatus.Error;
+    private bool IsIdle()    => XyzService.Status == XyzStatus.Idle;
+    private bool IsLoading() => XyzService.Status == XyzStatus.Loading;
+    private bool IsError()   => XyzService.Status == XyzStatus.Error;
 
     // ── Formatting ────────────────────────────────────────────────────────────
 
     private string FormatZooms()
     {
-        if (TmsService.ZoomLevels.Length == 0) return string.Empty;
-        if (TmsService.ZoomLevels.Length == 1) return TmsService.ZoomLevels[0].ToString();
-        int min = TmsService.ZoomLevels[0];
-        int max = TmsService.ZoomLevels[^1];
+        if (XyzService.ZoomLevels.Length == 0) return string.Empty;
+        if (XyzService.ZoomLevels.Length == 1) return XyzService.ZoomLevels[0].ToString();
+        int min = XyzService.ZoomLevels[0];
+        int max = XyzService.ZoomLevels[^1];
         return min == max ? min.ToString() : $"{min}–{max}";
     }
 
@@ -36,19 +36,19 @@ public partial class TmsTilePanel
     private async Task LoadAsync()
     {
         if (AssetService.ZipAsset?.BlobUrl is string blobUrl)
-            await TmsService.LoadAsync(blobUrl);
+            await XyzService.LoadAsync(blobUrl);
     }
 
-    private async Task ShowAsync() => await TmsService.ActivateAsync();
+    private async Task ShowAsync() => await XyzService.ActivateAsync();
 
-    private async Task HideAsync() => await TmsService.DeactivateAsync();
+    private async Task HideAsync() => await XyzService.DeactivateAsync();
 
     private async Task OnOpacityInput(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out var v))
         {
             _opacityPct = v;
-            await TmsService.SetOpacityAsync(v / 100.0);
+            await XyzService.SetOpacityAsync(v / 100.0);
         }
     }
 }

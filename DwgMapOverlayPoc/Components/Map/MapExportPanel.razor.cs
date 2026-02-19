@@ -5,18 +5,11 @@ using Microsoft.JSInterop;
 namespace DwgMapOverlayPoc.Components.Map;
 
 /// <summary>Code-behind for MapExportPanel.razor.</summary>
-public partial class MapExportPanel : IDisposable
+public partial class MapExportPanel
 {
     private bool    _busy          = false;
     private string? _statusMessage = null;
     private string  _statusClass   = "text-success";
-
-    protected override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-            EquipService.OnChanged += HandleChanged;
-        return Task.CompletedTask;
-    }
 
     private void HandleChanged() => InvokeAsync(StateHasChanged);
 
@@ -69,10 +62,4 @@ public partial class MapExportPanel : IDisposable
         }
     }
 
-    // ── Disposal ──────────────────────────────────────────────────────────────
-
-    public void Dispose()
-    {
-        EquipService.OnChanged -= HandleChanged;
-    }
 }

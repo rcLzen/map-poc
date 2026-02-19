@@ -4,7 +4,12 @@
  *
  * Requires:
  *   - window.L (Leaflet 1.9)
- *   - window.LeafletBlazorMap
+ *   - window.leafletInterop (leaflet-interop.js — provides waitForMap)
+ *   - window.LeafletBlazorMap (set by LeafletForBlazor after map init)
+ *
+ * All functions that touch the map await window.leafletInterop.waitForMap()
+ * so calls that arrive during startup queue safely instead of failing with
+ * "map not ready yet".
  *
  * Initialise once: equipmentInterop.init(dotNetRef)
  * Then call addMarker, removeMarker, startPlacementMode, etc.
@@ -17,10 +22,6 @@ window.equipmentInterop = (() => {
 
     let _dotNetRef        = null;
     let _placementHandler = null;
-
-    function getMap() {
-        return window.LeafletBlazorMap ?? null;
-    }
 
     // ── SVG icons ─────────────────────────────────────────────────────────────
 
@@ -75,16 +76,16 @@ window.equipmentInterop = (() => {
     // ── Marker management ─────────────────────────────────────────────────────
 
     /**
-     * Store dotNetRef for callbacks. Call once after Blazor initialises the service.
+     * Store the DotNetObjectReference for drag-end and placement callbacks.
+     * Called once after Blazor initialises the service — no map access needed.
      */
     function init(dotNetRef) {
         _dotNetRef = dotNetRef;
         console.info('[equipmentInterop] initialised');
     }
 
-    function addMarker(id, type, label, lat, lng, isSnapped) {
-        const map = getMap();
-        if (!map) { console.warn('[equipmentInterop] addMarker: map not ready'); return; }
+    async function addMarker(id, type, label, lat, lng, isSnapped) {
+        const map = await window.leafletInterop.waitForMap();
 
         if (_markers[id]) {
             map.removeLayer(_markers[id]);
@@ -109,16 +110,18 @@ window.equipmentInterop = (() => {
         _markers[id] = marker;
     }
 
-    function removeMarker(id) {
-        const map = getMap();
+    async function removeMarker(id) {
+        const map = await window.leafletInterop.waitForMap();
         if (_markers[id]) {
-            if (map) map.removeLayer(_markers[id]);
+            map.removeLayer(_markers[id]);
             delete _markers[id];
         }
     }
 
     function clearAllMarkers() {
-        const map = getMap();
+        // Synchronous: called during dispose / clear-all.
+        // Map is always ready by the time the user can trigger this.
+        const map = window.LeafletBlazorMap;
         for (const [id, marker] of Object.entries(_markers)) {
             if (map) map.removeLayer(marker);
             delete _markers[id];
@@ -127,9 +130,13 @@ window.equipmentInterop = (() => {
 
     // ── Placement mode ────────────────────────────────────────────────────────
 
-    function startPlacementMode() {
-        const map = getMap();
-        if (!map) { console.warn('[equipmentInterop] startPlacementMode: map not ready'); return; }
+    /**
+     * Enable single-click placement mode.  The next click on the map calls
+     * _dotNetRef.OnEquipmentClicked(lat, lng) and then disables itself.
+     * Awaits map readiness so the button can be clicked immediately after load.
+     */
+    async function startPlacementMode() {
+        const map = await window.leafletInterop.waitForMap();
 
         stopPlacementMode();
 
@@ -145,7 +152,8 @@ window.equipmentInterop = (() => {
     }
 
     function stopPlacementMode() {
-        const map = getMap();
+        // Synchronous cleanup — only needs the map ref if a handler exists.
+        const map = window.LeafletBlazorMap;
         if (_placementHandler) {
             if (map) map.off('click', _placementHandler);
             _placementHandler = null;

@@ -1,6 +1,6 @@
 /**
- * tms-interop.js
- * Unpacks a gdal2tiles-style ZIP into an in-memory tile cache and serves
+ * xyz-interop.js
+ * Unpacks a gdal2tiles --xyz ZIP into an in-memory tile cache and serves
  * those tiles as a custom Leaflet GridLayer (no HTTP tile server needed).
  *
  * Requires:
@@ -9,18 +9,21 @@
  *   - window.LeafletBlazorMap
  *
  * ZIP format expected:
- *   {z}/{x}/{y}.png  (XYZ) or TMS-style Y inverted — both are handled.
+ *   {z}/{x}/{y}.png  — standard XYZ / slippy-map tile layout
+ *   Generated with:  gdal2tiles.py --xyz --zoom=<min>-<max> input.tif tiles/
  */
 
-window.tmsInterop = (() => {
+'use strict';
 
-    /** In-memory tile store: "z/x/y" (XYZ) → object URL */
+window.xyzInterop = (() => {
+
+    /** In-memory tile store: "z/x/y" → object URL */
     const _tileCache = new Map();
 
     /** Revocable blob URLs for cleanup */
     const _blobUrls = [];
 
-    let _tmsLayer = null;
+    let _xyzLayer = null;
 
     function getMap() {
         return window.LeafletBlazorMap ?? null;
@@ -29,21 +32,22 @@ window.tmsInterop = (() => {
     // ── Tile loading ──────────────────────────────────────────────────────────
 
     /**
-     * Fetch the ZIP, decompress every PNG tile, store as Blob URLs.
-     * @param {string} blobUrl Browser Blob URL of the ZIP file.
+     * Fetch the ZIP, decompress every PNG tile, store as Blob URLs in XYZ key order.
+     * @param {string} blobUrl  Browser Blob URL of the uploaded ZIP file.
      * @returns {{ tileCount: number, zooms: number[] }}
      */
     async function loadTilesFromZip(blobUrl) {
-        // Clear any previous cache
+        // Clear any previous cache and revoke stale Blob URLs
         _blobUrls.forEach(u => URL.revokeObjectURL(u));
         _blobUrls.length = 0;
         _tileCache.clear();
 
-        const resp   = await fetch(blobUrl);
-        const ab     = await resp.arrayBuffer();
-        const zip    = await JSZip.loadAsync(ab);
+        const resp    = await fetch(blobUrl);
+        const ab      = await resp.arrayBuffer();
+        const zip     = await JSZip.loadAsync(ab);
         const zoomSet = new Set();
 
+        // Match paths like "14/1234/5678.png" (z/x/y)
         const tileRegex = /^(\d+)\/(\d+)\/(\d+)\.png$/i;
 
         const promises = [];
@@ -70,57 +74,55 @@ window.tmsInterop = (() => {
 
         const tileCount = _tileCache.size;
         const zooms     = Array.from(zoomSet).sort((a, b) => a - b);
-        console.info(`[tmsInterop] loaded ${tileCount} tiles, zooms: ${zooms.join(', ')}`);
+        console.info(`[xyzInterop] loaded ${tileCount} tiles, zooms: ${zooms.join(', ')}`);
         return { tileCount, zooms };
     }
 
     // ── Leaflet GridLayer ─────────────────────────────────────────────────────
 
-    function addTmsLayer() {
+    function addXyzLayer() {
         const map = getMap();
-        if (!map) { console.warn('[tmsInterop] addTmsLayer: map not ready'); return; }
-        if (_tmsLayer) { map.removeLayer(_tmsLayer); _tmsLayer = null; }
+        if (!map) { console.warn('[xyzInterop] addXyzLayer: map not ready'); return; }
+        if (_xyzLayer) { map.removeLayer(_xyzLayer); _xyzLayer = null; }
 
-        _tmsLayer = L.gridLayer({ tileSize: 256, opacity: 1 });
+        _xyzLayer = L.gridLayer({ tileSize: 256, opacity: 1 });
 
-        _tmsLayer.createTile = function (coords) {
+        _xyzLayer.createTile = function (coords) {
             const img = document.createElement('img');
             img.alt   = '';
 
-            // Try XYZ key first, then TMS-inverted Y
-            const xyzKey  = `${coords.z}/${coords.x}/${coords.y}`;
-            const tmsY    = (1 << coords.z) - 1 - coords.y;
-            const tmsKey  = `${coords.z}/${coords.x}/${tmsY}`;
-
-            const url = _tileCache.get(xyzKey) ?? _tileCache.get(tmsKey) ?? '';
+            // Standard XYZ lookup — Z/X/Y matches gdal2tiles --xyz output directly
+            const key = `${coords.z}/${coords.x}/${coords.y}`;
+            const url = _tileCache.get(key);
             if (url) {
                 img.src = url;
             } else {
-                // Transparent placeholder — tile not in pack
+                // Transparent placeholder — tile not present in pack
                 img.style.opacity = '0';
             }
             return img;
         };
 
-        _tmsLayer.addTo(map);
-        console.info('[tmsInterop] TMS layer added');
+        _xyzLayer.addTo(map);
+        console.info('[xyzInterop] XYZ layer added');
     }
 
-    function removeTmsLayer() {
+    function removeXyzLayer() {
         const map = getMap();
-        if (_tmsLayer) {
-            if (map) map.removeLayer(_tmsLayer);
-            _tmsLayer = null;
-            console.info('[tmsInterop] TMS layer removed');
+        if (_xyzLayer) {
+            if (map) map.removeLayer(_xyzLayer);
+            _xyzLayer = null;
+            console.info('[xyzInterop] XYZ layer removed');
         }
     }
 
-    function setTmsLayerOpacity(opacity) {
-        if (_tmsLayer) {
-            _tmsLayer.setOpacity(opacity);
+    function setXyzLayerOpacity(opacity) {
+        if (_xyzLayer) {
+            _xyzLayer.setOpacity(opacity);
         }
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
-    return { loadTilesFromZip, addTmsLayer, removeTmsLayer, setTmsLayerOpacity };
+    return { loadTilesFromZip, addXyzLayer, removeXyzLayer, setXyzLayerOpacity };
+
 })();
