@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Dwg Map Overlay POC</title>
+    <base href="/" />
+
+    <!-- PWA manifest & icons -->
+    <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- 1. Bootstrap (local – always available, no CDN dependency) -->
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+
+    <!-- 2. Leaflet 1.9.4 CSS
+         SRI integrity check intentionally omitted: unpkg.com can serve
+         different content-encodings depending on the client, which causes
+         Chrome to silently block the resource even when the file is correct.
+         The JS is loaded in <body> below before Blazor boots. -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          crossorigin="anonymous" />
+
+    <!-- 3. Application styles (global reset + Blazor utilities) -->
+    <link rel="stylesheet" href="css/app.css" />
+
+    <!-- 4. Blazor CSS-isolation bundle (generated at build time).
+         Loaded last so component-scoped rules can override global ones. -->
+    <link href="DwgMapOverlayPoc.styles.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- Blazor mounting point – height driven by #app { height:100% } in app.css -->
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <!-- Unhandled-error banner (hidden by default, shown by Blazor on crash) -->
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">&#x1F5D9;</a>
+    </div>
+
+    <!-- Leaflet 1.9.4 JS – must exist on window.L before Blazor boots
+         so that leaflet-interop.js can call L.tileLayer / L.imageOverlay.
+         SRI omitted for the same reliability reason as the CSS above. -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            crossorigin="anonymous"></script>
+
+    <!-- JSZip 3.10 – used for unpacking offline tile archives (Tasks 3 + 5) -->
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
+            crossorigin="anonymous"></script>
+
+    <!-- Leaflet.ImageOverlay.Rotated – 3-point georeferenced overlay (Task 4) -->
+    <script src="js/ImageOverlay.Rotated.js"></script>
+
+    <!-- Turf.js v6 – spatial math for bounding-box checks + GeoJSON snapping (Tasks 4 + 6) -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"
+            crossorigin="anonymous"></script>
+
+    <!-- IndexedDB asset persistence – must load before assetInterop (Task 9) -->
+    <script src="js/idb-interop.js"></script>
+
+    <!-- Asset interop – Blob URL management, localStorage helpers, JSZip preview.
+         Must load after JSZip and before Blazor so DwgAssetService can call it. -->
+    <script src="js/asset-interop.js"></script>
+
+    <!-- Leaflet JS interop bridge – must load after Leaflet, before Blazor -->
+    <script src="js/leaflet-interop.js"></script>
+
+    <!-- html2canvas 1.4.1 – map screenshot export (Task 10).
+         Must load before Blazor boots so mapExportInterop can reference it. -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+            crossorigin="anonymous"></script>
+
+    <!-- Alignment interop – rotated overlay + one-time map click capture (Task 4) -->
+    <script src="js/align-interop.js"></script>
+
+    <!-- TMS tile interop – ZIP → in-memory tile cache + custom GridLayer (Task 5) -->
+    <script src="js/tms-interop.js"></script>
+
+    <!-- Snap interop – Turf.js nearest-point/nearest-on-line queries (Task 6) -->
+    <script src="js/snap-interop.js"></script>
+
+    <!-- Equipment interop – SVG div-icons, drag handlers, placement mode (Task 7) -->
+    <script src="js/equipment-interop.js"></script>
+
+    <!-- Map export interop – html2canvas screenshot + GeoJSON download (Task 10) -->
+    <script src="js/map-export-interop.js"></script>
+
+    <!-- Blazor WASM runtime – boots last, after all JS dependencies are ready -->
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <!-- PWA service-worker registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(function (err) {
+                console.warn('Service worker registration failed:', err);
+            });
+        }
+    </script>
+
+    <!-- Offline-ready toast ─────────────────────────────────────────────────
+         Shown when the service worker activates and posts OFFLINE_READY.
+         Pure HTML/CSS/JS so it works before Blazor boots. -->
+    <style>
+        #offline-toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            background: #198754; /* Bootstrap success green */
+            color: #fff;
+            padding: .55rem 1rem;
+            border-radius: .375rem;
+            font-size: .875rem;
+            font-family: system-ui, sans-serif;
+            box-shadow: 0 .25rem .75rem rgba(0,0,0,.25);
+            opacity: 0;
+            transform: translateY(.5rem);
+            transition: opacity .3s ease, transform .3s ease;
+            pointer-events: none;
+            user-select: none;
+        }
+
+            #offline-toast.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+    </style>
+    <div id="offline-toast" role="status" aria-live="polite">
+        &#10003;&nbsp;App ready for offline use
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', function (event) {
+                if (event.data && event.data.type === 'OFFLINE_READY') {
+                    var el = document.getElementById('offline-toast');
+                    if (!el) return;
+                    el.classList.add('show');
+                    setTimeout(function () { el.classList.remove('show'); }, 3500);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

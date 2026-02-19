@@ -1,0 +1,256 @@
+/* ── Upload card container ───────────────────────────────────────────────── */
+
+.upload-card {
+    padding: 0.55rem 0.75rem 0.6rem;
+    border-bottom: 1px solid #1c2e50;
+    transition: background 0.15s;
+}
+
+.upload-card--uploading { background: #0d1b34; }
+.upload-card--ready     { background: transparent; }
+.upload-card--stub      { background: #1a1408; }
+.upload-card--error     { background: #1e0d0d; }
+
+/* ── Card header ─────────────────────────────────────────────────────────── */
+
+.upload-card__header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+}
+
+.upload-card__title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #8899bb;
+    text-transform: uppercase;
+    flex: 1;
+}
+
+/* ── Status badges ───────────────────────────────────────────────────────── */
+
+.upload-badge {
+    font-size: 0.65rem;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-style: normal;
+}
+
+.upload-badge--ok   { background: #1a4d2e; color: #4caf50; }
+.upload-badge--stub { background: #4a3800; color: #ffc107; }
+.upload-badge--err  { background: #4d1a1a; color: #f44336; font-weight: 700; }
+
+/* ── Remove button (×) ───────────────────────────────────────────────────── */
+
+.upload-remove {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid #2a4070;
+    border-radius: 4px;
+    color: #6b7fa8;
+    cursor: pointer;
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 0.1rem 0.3rem;
+    transition: background 0.12s, color 0.12s;
+}
+.upload-remove:hover { background: #3a1a1a; color: #f44336; border-color: #4d1a1a; }
+
+/* ── Idle drop zone ──────────────────────────────────────────────────────── */
+
+.upload-drop-zone {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px dashed #2a4070;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: #6b8cbf;
+    background: #0e1c38;
+    transition: background 0.15s, border-color 0.15s;
+    width: 100%;
+}
+.upload-drop-zone:hover {
+    background: #122040;
+    border-color: #4a7cc4;
+    color: #9eb8e8;
+}
+
+.upload-drop-zone__icon { font-size: 0.9rem; }
+
+.upload-limit {
+    font-size: 0.62rem;
+    color: #3d5070;
+    margin-top: 0.25rem;
+    padding-left: 0.15rem;
+}
+
+/* Visually hidden native file input – activated by the <label for="..."> */
+.upload-input-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── Progress bar ────────────────────────────────────────────────────────── */
+
+.upload-progress-wrap {
+    padding: 0.15rem 0;
+}
+
+.upload-progress-label {
+    font-size: 0.68rem;
+    color: #7090b0;
+    margin-bottom: 0.3rem;
+}
+
+.upload-progress-track {
+    height: 6px;
+    background: #0f1e36;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #1565c0, #4a9eff);
+    border-radius: 3px;
+    transition: width 0.1s linear;
+}
+
+/* ── Ready / file info ───────────────────────────────────────────────────── */
+
+.upload-thumb {
+    display: block;
+    max-width: 100%;
+    max-height: 120px;
+    border-radius: 4px;
+    border: 1px solid #1c2e50;
+    margin-bottom: 0.4rem;
+    object-fit: contain;
+    background: #0a1020;
+}
+
+.upload-file-info {
+    font-size: 0.76rem;
+    color: #9ea8c0;
+    word-break: break-all;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.upload-size {
+    font-size: 0.68rem;
+    color: #4d6080;
+    white-space: nowrap;
+}
+
+/* ── Stub warning ────────────────────────────────────────────────────────── */
+
+.upload-stub-warn {
+    font-size: 0.68rem;
+    color: #aa8800;
+    margin: 0.3rem 0 0.25rem;
+}
+
+.upload-reupload-btn {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid #4a3800;
+    border-radius: 4px;
+    color: #ffc107;
+    background: #2a2000;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+.upload-reupload-btn:hover { background: #3a2e00; }
+
+/* ── Error state ─────────────────────────────────────────────────────────── */
+
+.upload-error-msg {
+    font-size: 0.7rem;
+    color: #ef5350;
+    margin-bottom: 0.4rem;
+    word-break: break-word;
+}
+
+.upload-error-retry {
+    margin-top: 0.3rem;
+}
+
+/* ── ZIP entry tree ──────────────────────────────────────────────────────── */
+
+.upload-zip-tree {
+    margin-top: 0.45rem;
+}
+
+.upload-zip-summary {
+    font-size: 0.7rem;
+    color: #5c7ab0;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+}
+.upload-zip-summary::-webkit-details-marker { display: none; }
+.upload-zip-summary::before { content: "▶ "; font-size: 0.6rem; }
+details[open] .upload-zip-summary::before { content: "▼ "; }
+
+.upload-zip-list {
+    list-style: none;
+    margin: 0.3rem 0 0;
+    padding: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #0f3460 transparent;
+}
+
+.upload-zip-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.08rem 0.2rem;
+    font-size: 0.68rem;
+    color: #7090b0;
+    border-radius: 3px;
+}
+.upload-zip-entry--dir { color: #5882b8; }
+.upload-zip-entry--dir .upload-zip-name { font-weight: 600; }
+
+.upload-zip-icon { font-size: 0.6rem; flex-shrink: 0; }
+
+.upload-zip-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.upload-zip-size {
+    font-size: 0.62rem;
+    color: #3d5070;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.upload-zip-more {
+    font-size: 0.65rem;
+    color: #3d5070;
+    padding: 0.1rem 0.4rem;
+    font-style: italic;
+}

@@ -1,0 +1,283 @@
+@* ─────────────────────────────────────────────────────────────────────────
+   MainLayout.razor
+   Application shell: collapsible sidebar (left) + full-screen map (right).
+
+   Expected UI layout (sidebar open, 280 px wide)
+   ─────────────────────────────────────────────────────────────────────────
+   ┌────────────────────────┬───────────────────────────────────────────────┐
+   │ DWG Map Overlay  [«]   │                                               │
+   ├────────────────────────┤           Full-screen Leaflet map             │
+   │  BASE MAP              │         (Houston, TX at zoom 15)              │
+   │  ──────────────────    │                                               │
+   │  Provider              │   [+]                                         │
+   │  ● OpenStreetMap       │   [-]                                         │
+   │  ○ CartoDB             │                                               │
+   │  ○ Mapbox Streets      │                                               │
+   │    ⚠ token required    │                                               │
+   │                        │                                               │
+   │  Theme                 │                                               │
+   │  [Light ●] [Dark ○]   │                                               │
+   ├────────────────────────┤                                               │
+   │  LAYERS                │                     Scale ──── © OSM         │
+   │  (future overlay list) │                                               │
+   └────────────────────────┴───────────────────────────────────────────────┘
+
+   When sidebar is collapsed (44 px):
+   ┌──┬─────────────────────────────────────────────────────────────────────┐
+   │»]│                     Full-screen map (unchanged)                     │
+   └──┴─────────────────────────────────────────────────────────────────────┘
+   ───────────────────────────────────────────────────────────────────────── *@
+
+@inherits LayoutComponentBase
+@inject BaseMapService BaseMapService
+
+<div class="shell">
+
+    @* ── Sidebar ─────────────────────────────────────────────────────────── *@
+    <aside class="sidebar @(_sidebarOpen ? "sidebar--open" : "sidebar--closed")"
+           aria-label="Map controls">
+
+        @* Header row: title + collapse toggle *@
+        <div class="sidebar__header">
+            <span class="sidebar__title">DWG Map Overlay</span>
+            <button class="sidebar__toggle btn btn-sm btn-outline-secondary"
+                    @onclick="ToggleSidebar"
+                    title="@(_sidebarOpen ? "Collapse sidebar" : "Expand sidebar")"
+                    aria-expanded="@_sidebarOpen">
+                @(_sidebarOpen ? "«" : "»")
+            </button>
+        </div>
+
+        @if (_sidebarOpen)
+        {
+            <div class="sidebar__body">
+
+                @* ── BASE MAP section ─────────────────────────────────────────
+                   Shows one radio button per provider group.
+                   The active group + active theme determines which TileSourceModel
+                   is sent to MapComponent.SetBaseMapAsync.
+                   ─────────────────────────────────────────────────────────── *@
+                <section class="ctrl-section" aria-label="Base map selection">
+                    <div class="ctrl-section__title">BASE MAP</div>
+
+                    @* Provider radio buttons *@
+                    <div class="ctrl-group" role="radiogroup" aria-label="Map provider">
+                        @foreach (var group in _basemapGroups)
+                        {
+                            <label class="ctrl-radio @(_activeGroupKey == group.Key ? "ctrl-radio--active" : "")">
+                                <input type="radio"
+                                       name="basemap-provider"
+                                       value="@group.Key"
+                                       checked="@(_activeGroupKey == group.Key)"
+                                       @onchange="@(() => OnProviderChangedAsync(group.Key))" />
+                                <span class="ctrl-radio__label">@group.DisplayName</span>
+                                @if (group.RequiresToken && !BaseMapService.HasValidMapboxToken)
+                                {
+                                    @* Token warning – only shown for Mapbox when token is placeholder *@
+                                    <span class="ctrl-badge ctrl-badge--warn"
+                                          title="Set Mapbox:Token in wwwroot/appsettings.json">
+                                        token required
+                                    </span>
+                                }
+                            </label>
+                        }
+                    </div>
+
+                    @* Theme toggle: Light / Dark *@
+                    <div class="ctrl-group ctrl-group--row">
+                        <span class="ctrl-label">Theme</span>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Map theme">
+                            <button type="button"
+                                    class="btn @(_activeTheme == MapTheme.Light ? "btn-primary" : "btn-outline-secondary")"
+                                    @onclick="@(() => OnThemeChangedAsync(MapTheme.Light))"
+                                    aria-pressed="@(_activeTheme == MapTheme.Light)">
+                                Light
+                            </button>
+                            <button type="button"
+                                    class="btn @(_activeTheme == MapTheme.Dark ? "btn-primary" : "btn-outline-secondary")"
+                                    @onclick="@(() => OnThemeChangedAsync(MapTheme.Dark))"
+                                    aria-pressed="@(_activeTheme == MapTheme.Dark)">
+                                Dark
+                            </button>
+                        </div>
+                    </div>
+
+                    @* Active layer info – small descriptive chip *@
+                    <div class="ctrl-active-label">
+                        @_activeSourceLabel
+                    </div>
+
+                </section>
+
+                @* ── ASSETS section ────────────────────────────────────────────
+                   Holds the three file upload cards (PNG / GeoJSON / ZIP).
+                   FileUploadPanel owns its own DwgAssetService subscription
+                   and LocalStorage bootstrap; no asset state lives here.
+                   ─────────────────────────────────────────────────────────── *@
+                <section class="ctrl-section" aria-label="Asset uploads">
+                    <div class="ctrl-section__title">ASSETS</div>
+                    <FileUploadPanel />
+                </section>
+
+                @* ── OVERLAY MODE section ───────────────────────────────────
+                   Selects which overlay mode is active:
+                     None       – no overlay (base map only)
+                     QuickAlign – 3-point georeferenced PNG overlay (Task 4)
+                     TMS        – offline tile pack from ZIP (Task 5)
+                   ─────────────────────────────────────────────────────────── *@
+                <section class="ctrl-section" aria-label="Overlay mode">
+                    <div class="ctrl-section__title">OVERLAY MODE</div>
+                    <div class="btn-group btn-group-sm overlay-mode-group" role="group"
+                         aria-label="Overlay mode">
+                        <button type="button"
+                                class="btn @(_overlayMode == OverlayMode.None       ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => SetOverlayMode(OverlayMode.None))">
+                            None
+                        </button>
+                        <button type="button"
+                                class="btn @(_overlayMode == OverlayMode.QuickAlign ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => SetOverlayMode(OverlayMode.QuickAlign))">
+                            Quick&nbsp;Align
+                        </button>
+                        <button type="button"
+                                class="btn @(_overlayMode == OverlayMode.Tms        ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => SetOverlayMode(OverlayMode.Tms))">
+                            TMS&nbsp;Tiles
+                        </button>
+                    </div>
+                </section>
+
+                @* ── Panel shown for the selected overlay mode ────────────── *@
+                @if (_overlayMode == OverlayMode.QuickAlign)
+                {
+                    <AlignmentPanel />
+                }
+                else if (_overlayMode == OverlayMode.Tms)
+                {
+                    <TmsTilePanel />
+                }
+
+                @* ── EQUIPMENT section – always visible ───────────────────── *@
+                <EquipmentPanel />
+
+                @* ── EXPORT section – screenshot + GeoJSON download ────────── *@
+                <MapExportPanel />
+
+            </div>  @* /sidebar__body *@
+        }
+
+    </aside>
+
+    @* ── Map area ─────────────────────────────────────────────────────────── *@
+    <main class="map-area" aria-label="Interactive map">
+        <MapComponent @ref="_mapComponent" OnMapReady="OnMapReadyAsync" />
+    </main>
+
+</div>
+
+@code {
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private state
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private MapComponent? _mapComponent;
+    private bool _sidebarOpen = true;
+
+    private IReadOnlyList<BasemapGroup> _basemapGroups = [];
+    private string _activeGroupKey = string.Empty;
+    private MapTheme _activeTheme = MapTheme.Light;
+
+    /// <summary>Label shown below the theme toggle describing the active layer.</summary>
+    private string _activeSourceLabel = string.Empty;
+
+    /// <summary>Which overlay mode is currently active in the sidebar.</summary>
+    private OverlayMode _overlayMode = OverlayMode.None;
+
+    private enum OverlayMode { None, QuickAlign, Tms }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Lifecycle
+    // ─────────────────────────────────────────────────────────────────────────
+
+    protected override void OnInitialized()
+    {
+        _basemapGroups  = BaseMapService.GetGroups();
+        _activeGroupKey = BaseMapService.DefaultGroupKey;
+        _activeTheme    = BaseMapService.DefaultTheme;
+        UpdateActiveLabel();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Sidebar toggle
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void ToggleSidebar() => _sidebarOpen = !_sidebarOpen;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Overlay mode
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void SetOverlayMode(OverlayMode mode)
+    {
+        _overlayMode = mode;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Map-ready callback (fired by MapComponent after Leaflet init + first tile)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The map is fully initialised at this point. Applying the selection here
+    /// is a no-op visually (MapComponent already applied the default in
+    /// OnLeafletMapLoaded) but it keeps the sidebar's state in sync.
+    /// </summary>
+    private async Task OnMapReadyAsync()
+    {
+        await ApplySelectionAsync();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Sidebar event handlers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private async Task OnProviderChangedAsync(string groupKey)
+    {
+        if (_activeGroupKey == groupKey) return;
+        _activeGroupKey = groupKey;
+        await ApplySelectionAsync();
+    }
+
+    private async Task OnThemeChangedAsync(MapTheme theme)
+    {
+        if (_activeTheme == theme) return;
+        _activeTheme = theme;
+        await ApplySelectionAsync();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Core: resolve active TileSourceModel and push to the map
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private async Task ApplySelectionAsync()
+    {
+        var source = BaseMapService.GetTileSource(_activeGroupKey, _activeTheme);
+        UpdateActiveLabel(source);
+
+        // Guard: map ref is set during the render cycle that includes
+        // <MapComponent @ref="_mapComponent">, so it will be non-null once
+        // OnMapReadyAsync is called, but may be null on very first OnInitialized.
+        if (_mapComponent is null) return;
+
+        await _mapComponent.SetBaseMapAsync(source);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void UpdateActiveLabel(TileSourceModel? source = null)
+    {
+        source ??= BaseMapService.GetTileSource(_activeGroupKey, _activeTheme);
+        _activeSourceLabel = source.Label;
+    }
+}

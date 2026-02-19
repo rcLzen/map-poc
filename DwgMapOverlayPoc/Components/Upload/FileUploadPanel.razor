@@ -1,0 +1,290 @@
+@* ──────────────────────────────────────────────────────────────────────────
+   FileUploadPanel.razor
+   Three upload cards rendered inside the sidebar ASSETS section.
+   All C# helpers live in FileUploadPanel.razor.cs (partial class).
+
+   States per card:
+     idle       – Choose-file drop zone + size limit label
+     uploading  – progress bar (Reading → Processing)
+     ready      – file info + thumbnail (PNG) / ZIP tree + remove button
+     error      – error message + retry drop zone
+     stub       – metadata from localStorage; re-upload prompt
+   ────────────────────────────────────────────────────────────────────────── *@
+
+@inject DwgAssetService AssetService
+@implements IDisposable
+
+@* ══════════════════════════════════════════════════════════════════════════
+   PNG card
+   ══════════════════════════════════════════════════════════════════════════ *@
+<div class="upload-card @CardCss(AssetService.PngAsset)">
+
+    <div class="upload-card__header">
+        <span class="upload-card__title">DWG Raster PNG</span>
+        @if (ShowBadge(AssetService.PngAsset))
+        {
+            <span class="upload-badge @BadgeCss(AssetService.PngAsset)"
+                  title="@BadgeTitle(AssetService.PngAsset)">@BadgeText(AssetService.PngAsset)</span>
+        }
+        @if (AssetService.PngAsset is not null)
+        {
+            <button class="upload-remove" title="Remove" @onclick="RemovePngAsync">&#x2715;</button>
+        }
+    </div>
+
+    @if (AssetService.PngAsset is null)
+    {
+        <label class="upload-drop-zone" for="upload-png">
+            <span class="upload-drop-zone__icon">&#x1F4C2;</span>
+            <span>Choose PNG&hellip;</span>
+        </label>
+        <InputFile id="upload-png" accept=".png" class="upload-input-hidden"
+                   OnChange="@(e => _ = AssetService.UploadPngAsync(e.File))" />
+        <div class="upload-limit">max @FormatMaxMB(DwgAssetService.MaxPngBytes)</div>
+    }
+    else if (AssetService.PngAsset.Status == UploadStatus.Reading
+          || AssetService.PngAsset.Status == UploadStatus.Processing)
+    {
+        <div class="upload-progress-wrap">
+            <div class="upload-progress-label">
+                @StatusLabel(AssetService.PngAsset) &nbsp;@AssetService.PngAsset.ProgressPercent%
+            </div>
+            <div class="upload-progress-track">
+                <div class="upload-progress-bar"
+                     style="width: @(AssetService.PngAsset.ProgressPercent)%"></div>
+            </div>
+        </div>
+    }
+    else if (AssetService.PngAsset.Status == UploadStatus.Error)
+    {
+        <div class="upload-error-msg">@AssetService.PngAsset.ErrorMessage</div>
+        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-png-retry">
+            <span class="upload-drop-zone__icon">&#x1F4C2;</span>
+            <span>Retry&hellip;</span>
+        </label>
+        <InputFile id="upload-png-retry" accept=".png" class="upload-input-hidden"
+                   OnChange="@(e => _ = AssetService.UploadPngAsync(e.File))" />
+    }
+    else
+    {
+        @if (AssetService.PngAsset.ThumbnailDataUrl is string pngThumb)
+        {
+            <img class="upload-thumb" src="@pngThumb" alt="PNG preview" />
+        }
+        <div class="upload-file-info">
+            <span class="upload-file-name" title="@AssetService.PngAsset.Name">
+                @AssetService.PngAsset.Name
+            </span>
+            <span class="upload-size">@AssetService.PngAsset.FormattedSize</span>
+        </div>
+        @if (AssetService.PngAsset.IsStub)
+        {
+            <p class="upload-stub-warn">&#x26A0; Re-upload to activate on map.</p>
+            <label class="upload-reupload-btn" for="upload-png-re">Re-upload</label>
+            <InputFile id="upload-png-re" accept=".png" class="upload-input-hidden"
+                       OnChange="@(e => _ = AssetService.UploadPngAsync(e.File))" />
+        }
+    }
+
+</div>
+
+@* ══════════════════════════════════════════════════════════════════════════
+   GeoJSON card
+   ══════════════════════════════════════════════════════════════════════════ *@
+<div class="upload-card @CardCss(AssetService.GeoJsonAsset)">
+
+    <div class="upload-card__header">
+        <span class="upload-card__title">GeoJSON Vector</span>
+        @if (ShowBadge(AssetService.GeoJsonAsset))
+        {
+            <span class="upload-badge @BadgeCss(AssetService.GeoJsonAsset)"
+                  title="@BadgeTitle(AssetService.GeoJsonAsset)">@BadgeText(AssetService.GeoJsonAsset)</span>
+        }
+        @if (AssetService.GeoJsonAsset is not null)
+        {
+            <button class="upload-remove" title="Remove" @onclick="RemoveGeoJsonAsync">&#x2715;</button>
+        }
+    </div>
+
+    @if (AssetService.GeoJsonAsset is null)
+    {
+        <label class="upload-drop-zone" for="upload-geojson">
+            <span class="upload-drop-zone__icon">&#x1F4C2;</span>
+            <span>Choose GeoJSON&hellip;</span>
+        </label>
+        <InputFile id="upload-geojson" accept=".geojson,.json" class="upload-input-hidden"
+                   OnChange="@(e => _ = AssetService.UploadGeoJsonAsync(e.File))" />
+        <div class="upload-limit">max @FormatMaxMB(DwgAssetService.MaxGeoJsonBytes)</div>
+    }
+    else if (AssetService.GeoJsonAsset.Status == UploadStatus.Reading
+          || AssetService.GeoJsonAsset.Status == UploadStatus.Processing)
+    {
+        <div class="upload-progress-wrap">
+            <div class="upload-progress-label">
+                @StatusLabel(AssetService.GeoJsonAsset) &nbsp;@AssetService.GeoJsonAsset.ProgressPercent%
+            </div>
+            <div class="upload-progress-track">
+                <div class="upload-progress-bar"
+                     style="width: @(AssetService.GeoJsonAsset.ProgressPercent)%"></div>
+            </div>
+        </div>
+    }
+    else if (AssetService.GeoJsonAsset.Status == UploadStatus.Error)
+    {
+        <div class="upload-error-msg">@AssetService.GeoJsonAsset.ErrorMessage</div>
+        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-geojson-retry">
+            <span class="upload-drop-zone__icon">&#x1F4C2;</span>
+            <span>Retry&hellip;</span>
+        </label>
+        <InputFile id="upload-geojson-retry" accept=".geojson,.json" class="upload-input-hidden"
+                   OnChange="@(e => _ = AssetService.UploadGeoJsonAsync(e.File))" />
+    }
+    else
+    {
+        <div class="upload-file-info">
+            <span class="upload-file-name" title="@AssetService.GeoJsonAsset.Name">
+                @AssetService.GeoJsonAsset.Name
+            </span>
+            <span class="upload-size">@AssetService.GeoJsonAsset.FormattedSize</span>
+        </div>
+        @if (AssetService.GeoJsonAsset.IsStub)
+        {
+            <p class="upload-stub-warn">&#x26A0; Re-upload to activate on map.</p>
+            <label class="upload-reupload-btn" for="upload-geojson-re">Re-upload</label>
+            <InputFile id="upload-geojson-re" accept=".geojson,.json" class="upload-input-hidden"
+                       OnChange="@(e => _ = AssetService.UploadGeoJsonAsync(e.File))" />
+        }
+    }
+
+</div>
+
+@* ══════════════════════════════════════════════════════════════════════════
+   ZIP card
+   ══════════════════════════════════════════════════════════════════════════ *@
+<div class="upload-card @CardCss(AssetService.ZipAsset)">
+
+    <div class="upload-card__header">
+        <span class="upload-card__title">TMS Tiles ZIP</span>
+        @if (ShowBadge(AssetService.ZipAsset))
+        {
+            <span class="upload-badge @BadgeCss(AssetService.ZipAsset)"
+                  title="@BadgeTitle(AssetService.ZipAsset)">@BadgeText(AssetService.ZipAsset)</span>
+        }
+        @if (AssetService.ZipAsset is not null)
+        {
+            <button class="upload-remove" title="Remove" @onclick="RemoveZipAsync">&#x2715;</button>
+        }
+    </div>
+
+    @if (AssetService.ZipAsset is null)
+    {
+        <label class="upload-drop-zone" for="upload-zip">
+            <span class="upload-drop-zone__icon">&#x1F4C2;</span>
+            <span>Choose ZIP&hellip;</span>
+        </label>
+        <InputFile id="upload-zip" accept=".zip" class="upload-input-hidden"
+                   OnChange="@(e => _ = AssetService.UploadZipAsync(e.File))" />
+        <div class="upload-limit">max @FormatMaxMB(DwgAssetService.MaxZipBytes)</div>
+    }
+    else if (AssetService.ZipAsset.Status == UploadStatus.Reading
+          || AssetService.ZipAsset.Status == UploadStatus.Processing)
+    {
+        <div class="upload-progress-wrap">
+            <div class="upload-progress-label">
+                @StatusLabel(AssetService.ZipAsset) &nbsp;@AssetService.ZipAsset.ProgressPercent%
+            </div>
+            <div class="upload-progress-track">
+                <div class="upload-progress-bar"
+                     style="width: @(AssetService.ZipAsset.ProgressPercent)%"></div>
+            </div>
+        </div>
+    }
+    else if (AssetService.ZipAsset.Status == UploadStatus.Error)
+    {
+        <div class="upload-error-msg">@AssetService.ZipAsset.ErrorMessage</div>
+        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-zip-retry">
+            <span class="upload-drop-zone__icon">&#x1F4C2;</span>
+            <span>Retry&hellip;</span>
+        </label>
+        <InputFile id="upload-zip-retry" accept=".zip" class="upload-input-hidden"
+                   OnChange="@(e => _ = AssetService.UploadZipAsync(e.File))" />
+    }
+    else
+    {
+        <div class="upload-file-info">
+            <span class="upload-file-name" title="@AssetService.ZipAsset.Name">
+                @AssetService.ZipAsset.Name
+            </span>
+            <span class="upload-size">@AssetService.ZipAsset.FormattedSize</span>
+        </div>
+        @if (AssetService.ZipAsset.IsStub)
+        {
+            <p class="upload-stub-warn">&#x26A0; Re-upload to activate on map.</p>
+            <label class="upload-reupload-btn" for="upload-zip-re">Re-upload</label>
+            <InputFile id="upload-zip-re" accept=".zip" class="upload-input-hidden"
+                       OnChange="@(e => _ = AssetService.UploadZipAsync(e.File))" />
+        }
+        @if (AssetService.ZipAsset.ZipContents != null && AssetService.ZipAsset.ZipContents.Count > 0)
+        {
+            <details class="upload-zip-tree">
+                <summary class="upload-zip-summary">
+                    @AssetService.ZipAsset.ZipContents.Count entries
+                    @if (AssetService.ZipAsset.ZipContents.Count >= 200)
+                    {
+                        <span class="upload-zip-capped">(capped at 200)</span>
+                    }
+                </summary>
+                <ul class="upload-zip-list">
+                    @foreach (var entry in GetZipShown())
+                    {
+                        <li class="@ZipEntryCss(entry)">
+                            <span class="upload-zip-icon">
+                                @(entry.IsDirectory ? "📁" : "📄")
+                            </span>
+                            <span class="upload-zip-name" title="@entry.Name">
+                                @TrimPath(entry.Name)
+                            </span>
+                            @if (!entry.IsDirectory && entry.Size > 0)
+                            {
+                                <span class="upload-zip-size">@FormatBytes(entry.Size)</span>
+                            }
+                        </li>
+                    }
+                    @if (AssetService.ZipAsset.ZipContents.Count > 50)
+                    {
+                        <li class="upload-zip-more">
+                            &hellip; @(AssetService.ZipAsset.ZipContents.Count - 50) more
+                        </li>
+                    }
+                </ul>
+            </details>
+        }
+    }
+
+</div>
+
+@code {
+
+    // Suppress re-renders while DwgAssetService has an open IBrowserFile stream.
+    // A re-render during streaming removes the InputFile DOM element and clears
+    // the JS _blazorFilesById entry, causing "Cannot read properties of null".
+    protected override bool ShouldRender() => !AssetService.IsReadingFile;
+
+    protected override void OnInitialized()
+        => AssetService.OnAssetsChanged += HandleAssetsChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await AssetService.LoadMetadataAsync();
+    }
+
+    public void Dispose()
+        => AssetService.OnAssetsChanged -= HandleAssetsChanged;
+
+    private void HandleAssetsChanged() => InvokeAsync(StateHasChanged);
+
+    private Task RemovePngAsync()     => AssetService.RemovePngAsync();
+    private Task RemoveGeoJsonAsync() => AssetService.RemoveGeoJsonAsync();
+    private Task RemoveZipAsync()     => AssetService.RemoveZipAsync();
+}

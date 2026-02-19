@@ -1,0 +1,177 @@
+@* ─────────────────────────────────────────────────────────────────────────
+   AlignmentPanel.razor
+   3-point georeferencing UI. All C# helpers live in AlignmentPanel.razor.cs.
+
+   Workflow:
+     1. User enters image W × H in pixels.
+     2. For each of 3 control points:
+          a. Click "Click map" → one-time map click capture fills Lat/Lng.
+          b. Type Pixel X and Pixel Y coordinates.
+     3. Click "Apply" → affine math → rotated PNG overlay appears on map.
+     4. Adjust opacity slider if needed.
+     5. Click "Remove" to clear the overlay.
+   ───────────────────────────────────────────────────────────────────────── *@
+
+@inject QuickAlignService AlignService
+@inject DwgAssetService   AssetService
+@inject IJSRuntime        JS
+@implements IDisposable
+
+<section class="ctrl-section" aria-label="Alignment controls">
+    <div class="ctrl-section__title">ALIGNMENT</div>
+
+    @if (IsPngReady())
+    {
+        @* ── Image dimensions ─────────────────────────────────────────── *@
+        <div class="align-dim-row">
+            <label class="align-dim-label">W&nbsp;px</label>
+            <input class="align-dim-input" type="number" min="1"
+                   @bind="_imageW" @bind:event="onchange" />
+            <label class="align-dim-label">H&nbsp;px</label>
+            <input class="align-dim-input" type="number" min="1"
+                   @bind="_imageH" @bind:event="onchange" />
+        </div>
+
+        @* ── Control point row 0 ──────────────────────────────────────── *@
+        <div class="align-cp-row">
+            <span class="align-cp-num">1</span>
+            @if (_hasMapCoords[0])
+            {
+                <span class="align-cp-latlng">@(FormatLatLng(0))</span>
+                <button class="align-cp-clear btn btn-sm btn-link"
+                        @onclick="@(() => ClearMapCoord(0))">✕</button>
+            }
+            else
+            {
+                <button class="btn btn-sm @(IsPickingStep(0) ? "btn-warning" : "btn-outline-light") align-cp-pick"
+                        @onclick="@(() => TogglePickAsync(0))">
+                    @(IsPickingStep(0) ? "Cancel" : "Click map")
+                </button>
+            }
+            <input class="align-cp-px" type="number" placeholder="px"
+                   @bind="_pixelX[0]" @bind:event="onchange" />
+            <input class="align-cp-py" type="number" placeholder="py"
+                   @bind="_pixelY[0]" @bind:event="onchange" />
+        </div>
+
+        @* ── Control point row 1 ──────────────────────────────────────── *@
+        <div class="align-cp-row">
+            <span class="align-cp-num">2</span>
+            @if (_hasMapCoords[1])
+            {
+                <span class="align-cp-latlng">@(FormatLatLng(1))</span>
+                <button class="align-cp-clear btn btn-sm btn-link"
+                        @onclick="@(() => ClearMapCoord(1))">✕</button>
+            }
+            else
+            {
+                <button class="btn btn-sm @(IsPickingStep(1) ? "btn-warning" : "btn-outline-light") align-cp-pick"
+                        @onclick="@(() => TogglePickAsync(1))">
+                    @(IsPickingStep(1) ? "Cancel" : "Click map")
+                </button>
+            }
+            <input class="align-cp-px" type="number" placeholder="px"
+                   @bind="_pixelX[1]" @bind:event="onchange" />
+            <input class="align-cp-py" type="number" placeholder="py"
+                   @bind="_pixelY[1]" @bind:event="onchange" />
+        </div>
+
+        @* ── Control point row 2 ──────────────────────────────────────── *@
+        <div class="align-cp-row">
+            <span class="align-cp-num">3</span>
+            @if (_hasMapCoords[2])
+            {
+                <span class="align-cp-latlng">@(FormatLatLng(2))</span>
+                <button class="align-cp-clear btn btn-sm btn-link"
+                        @onclick="@(() => ClearMapCoord(2))">✕</button>
+            }
+            else
+            {
+                <button class="btn btn-sm @(IsPickingStep(2) ? "btn-warning" : "btn-outline-light") align-cp-pick"
+                        @onclick="@(() => TogglePickAsync(2))">
+                    @(IsPickingStep(2) ? "Cancel" : "Click map")
+                </button>
+            }
+            <input class="align-cp-px" type="number" placeholder="px"
+                   @bind="_pixelX[2]" @bind:event="onchange" />
+            <input class="align-cp-py" type="number" placeholder="py"
+                   @bind="_pixelY[2]" @bind:event="onchange" />
+        </div>
+
+        @* ── Actions ──────────────────────────────────────────────────── *@
+        <div class="align-actions">
+            @if (!_hasOverlay)
+            {
+                <button class="btn btn-sm btn-success"
+                        disabled="@(!CanApply())"
+                        @onclick="ApplyAsync">Apply</button>
+            }
+            else
+            {
+                <button class="btn btn-sm btn-outline-danger"
+                        @onclick="RemoveAsync">Remove overlay</button>
+                <div class="align-opacity-row">
+                    <label class="align-opacity-label">Opacity</label>
+                    <input type="range" min="0" max="100" value="@_opacityPct"
+                           class="align-opacity-slider"
+                           @oninput="OnOpacityInput" />
+                    <span class="align-opacity-val">@(_opacityPct)%</span>
+                </div>
+            }
+        </div>
+
+        @if (_errorMessage is not null)
+        {
+            <div class="align-error">@_errorMessage</div>
+        }
+    }
+    else
+    {
+        <p class="ctrl-placeholder">Upload a PNG to enable alignment.</p>
+    }
+
+</section>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        _selfRef = DotNetObjectReference.Create(this);
+        AssetService.OnAssetsChanged += HandleAssetsChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && IsPngReady())
+            await TryAutoDetectImageSizeAsync();
+    }
+
+    [JSInvokable]
+    public void OnMapClicked(double lat, double lng)
+    {
+        if (_pickingStep >= 0 && _pickingStep < 3)
+        {
+            _worldLat[_pickingStep]   = lat;
+            _worldLng[_pickingStep]   = lng;
+            _hasMapCoords[_pickingStep] = true;
+            _pickingStep = -1;
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleAssetsChanged()
+    {
+        if (!IsPngReady() && _hasOverlay)
+        {
+            // PNG was removed — clear the overlay
+            _ = RemoveAsync();
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _selfRef?.Dispose();
+        AssetService.OnAssetsChanged -= HandleAssetsChanged;
+    }
+}

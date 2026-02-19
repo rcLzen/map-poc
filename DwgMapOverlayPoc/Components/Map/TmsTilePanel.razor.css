@@ -1,0 +1,43 @@
+/* ── TMS info ──────────────────────────────────────────────────────────────── */
+
+.tms-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 0.45rem;
+}
+
+.tms-count {
+    font-size: 0.78rem;
+    color: #4fc3f7;
+    font-weight: 600;
+}
+
+.tms-zooms {
+    font-size: 0.72rem;
+    color: #9ea8c0;
+}
+
+/* ── Error ─────────────────────────────────────────────────────────────────── */
+
+.tms-error {
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    color: #ef9a9a;
+    background: rgba(183, 28, 28, 0.25);
+    border: 1px solid #b71c1c;
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+}
+
+/* ── Loading bar (infinite pulse) ─────────────────────────────────────────── */
+
+.tms-loading-bar {
+    width: 40%;
+    animation: tms-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes tms-pulse {
+    from { opacity: 0.4; width: 20%; }
+    to   { opacity: 1;   width: 90%; }
+}

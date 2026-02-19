@@ -1,0 +1,277 @@
+@* ─────────────────────────────────────────────────────────────────────────
+   MapComponent.razor
+   Full-screen interactive map powered by LeafletForBlazor.
+
+   Responsibility split
+   ─────────────────────
+   • LeafletForBlazor owns the Leaflet map container, zoom controls, and the
+     initial tile layer added via Map.LoadParameters.basemap.
+   • This component owns ALL subsequent tile-layer changes via JS interop
+     (leafletInterop.setBaseLayer) so swaps are smooth without a full Blazor
+     re-render or map re-initialisation.
+   • DWG image overlays are managed via leafletInterop.syncOverlays.
+
+   Expected initial UI (Houston, TX  zoom 15)
+   ───────────────────────────────────────────
+   ┌──────────────────────────────────────────────────────────┐
+   │  [+]  Downtown Houston street grid fills the viewport.   │
+   │  [-]  Scale bar (metric) in the bottom-left corner.      │
+   │       OSM attribution in the bottom-right corner.        │
+   │       Zoom controls in the top-left corner.              │
+   └──────────────────────────────────────────────────────────┘
+   ───────────────────────────────────────────────────────────────────────── *@
+
+@inject BaseMapService BaseMapService
+@inject OverlayService OverlayService
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="map-wrapper">
+    @if (_mapParams is not null)
+    {
+        @* LeafletForBlazor Map component.
+           width/height "100%" fills the parent .map-area flex container.
+           onLoadMap fires after Leaflet finishes its own initialisation –
+           safe to call JS interop from that point onward. *@
+        <Map @ref="_map"
+             width="100%"
+             height="100%"
+             Parameters="@_mapParams"
+             onLoadMap="@OnLeafletMapLoaded" />
+    }
+    else
+    {
+        @* ── Loading placeholder ──────────────────────────────────────────
+           Shown for the brief moment between OnInitialized (where _mapParams
+           is built) and the first render. In practice this flashes for <1 frame.
+           ─────────────────────────────────────────────────────────────────── *@
+        <div class="map-loading">
+            <div class="spinner-border text-primary" role="status" aria-label="Loading map">
+            </div>
+            <p class="mt-2 text-muted small">Initialising map…</p>
+        </div>
+    }
+</div>
+
+@code {
+    // ─────────────────────────────────────────────────────────────────────────
+    // Parameters
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Invoked by this component after Leaflet reports onLoadMap, and after
+    /// the initial base tile layer has been applied via JS interop.
+    /// The parent (MainLayout) uses this to know it is safe to call
+    /// <see cref="SetBaseMapAsync"/>.
+    /// </summary>
+    [Parameter] public EventCallback OnMapReady { get; set; }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private state
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private Map? _map;
+    private Map.LoadParameters? _mapParams;
+
+    /// <summary>
+    /// Tracks the currently displayed tile source so callers can read it back.
+    /// </summary>
+    private TileSourceModel _currentSource = new();
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Lifecycle
+    // ─────────────────────────────────────────────────────────────────────────
+
+    protected override void OnInitialized()
+    {
+        var defaultSource = BaseMapService.GetDefault();
+        _currentSource = defaultSource;
+
+        // ── Map.LoadParameters ────────────────────────────────────────────────
+        // Centre: Houston, TX  (29.7604 N, 95.3698 W)
+        // Zoom 15 shows city blocks at a comfortable planning scale.
+        //
+        // basemap.basemap_layers intentionally contains the default OSM source
+        // so LeafletForBlazor renders tiles immediately on load. The first call
+        // to OnLeafletMapLoaded will invoke setBaseLayer which performs a clean
+        // sweep and re-adds the same source – this ensures our JS reference
+        // (_baseLayer) is established and subsequent swaps work correctly.
+        _mapParams = new Map.LoadParameters()
+        {
+            location = new Map.Location()
+            {
+                latitude  =  29.7604,   // Houston, TX
+                longitude = -95.3698
+            },
+            zoom_level = 15,
+            map_scale = new Map.MapScale()
+            {
+                has    = true,
+                meters = true,
+                miles  = false          // metric scale only
+            },
+            basemap = new Map.Basemap()
+            {
+                basemap_layers = new List<Map.BasemapConfigLayer>()
+                {
+                    new Map.BasemapConfigLayer()
+                    {
+                        url          = defaultSource.UrlTemplate,
+                        attribution  = defaultSource.Attribution,
+                        title        = defaultSource.Label,
+                        max_zoom     = defaultSource.MaxZoom,
+                        detect_retina = true
+                    }
+                }
+            }
+        };
+
+        OverlayService.OnChange += HandleOverlayChange;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LeafletForBlazor callbacks
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fired once by LeafletForBlazor when the Leaflet map object is ready
+    /// in the browser DOM. This is the earliest safe point to call Leaflet
+    /// JS interop.
+    ///
+    /// We immediately call setBaseLayer to take ownership of the tile layer
+    /// (replacing whatever LeafletForBlazor added), then notify the parent.
+    /// </summary>
+    private async void OnLeafletMapLoaded(Map.OnLoadEventParameters args)
+    {
+        try
+        {
+            // Take ownership of the tile layer via JS interop.
+            // This also establishes _baseLayer in the JS module for future swaps.
+            await ApplyTileSourceAsync(_currentSource);
+
+            // Sync any DWG overlays that were queued before the map loaded.
+            await SyncOverlaysAsync();
+
+            await OnMapReady.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[MapComponent] OnLeafletMapLoaded error: {ex.Message}");
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Public API  (called by MainLayout sidebar)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Swaps the base tile layer to the supplied source without remounting the
+    /// LeafletForBlazor component or losing the current map position/zoom.
+    ///
+    /// Thread-safe: marshals onto the Blazor sync context via InvokeAsync.
+    /// </summary>
+    public async Task SetBaseMapAsync(TileSourceModel source)
+    {
+        _currentSource = source;
+        await ApplyTileSourceAsync(source);
+    }
+
+    /// <summary>
+    /// Flies the map to a new centre point with a smooth Leaflet animation.
+    /// </summary>
+    public async Task FlyToAsync(double lat, double lng, int zoom = 15)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("leafletInterop.flyTo", lat, lng, zoom);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[MapComponent] FlyToAsync failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>Returns the tile source that is currently displayed.</summary>
+    public TileSourceModel GetCurrentSource() => _currentSource;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Calls leafletInterop.setBaseLayer with all parameters from the model.
+    /// </summary>
+    private async Task ApplyTileSourceAsync(TileSourceModel source)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync(
+                "leafletInterop.setBaseLayer",
+                source.UrlTemplate,
+                source.Attribution,
+                source.MaxZoom,
+                source.TileSize,
+                source.ZoomOffset);
+        }
+        catch (JSException ex)
+        {
+            // Map may not be fully booted on the very first render cycle.
+            Console.Error.WriteLine($"[MapComponent] setBaseLayer skipped: {ex.Message}");
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DWG overlay sync
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Pushes the current overlay list to Leaflet via JS.
+    /// Called after map load and on every OverlayService mutation.
+    /// </summary>
+    private async Task SyncOverlaysAsync()
+    {
+        var payload = OverlayService.Overlays
+            .Where(o => o.IsVisible)
+            .Select(o => new
+            {
+                id           = o.Id.ToString(),
+                imageUrl     = o.ImageUrl,
+                southWestLat = o.SouthWest.Lat,
+                southWestLng = o.SouthWest.Lng,
+                northEastLat = o.NorthEast.Lat,
+                northEastLng = o.NorthEast.Lng,
+                opacity      = o.Opacity
+            })
+            .ToArray();
+
+        try
+        {
+            await JS.InvokeVoidAsync("leafletInterop.syncOverlays", (object)payload);
+        }
+        catch (JSException ex)
+        {
+            Console.Error.WriteLine($"[MapComponent] syncOverlays skipped: {ex.Message}");
+        }
+    }
+
+    private void HandleOverlayChange()
+    {
+        InvokeAsync(async () =>
+        {
+            await SyncOverlaysAsync();
+            StateHasChanged();
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Disposal
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public async ValueTask DisposeAsync()
+    {
+        OverlayService.OnChange -= HandleOverlayChange;
+
+        if (_map is IAsyncDisposable d)
+            await d.DisposeAsync();
+    }
+}

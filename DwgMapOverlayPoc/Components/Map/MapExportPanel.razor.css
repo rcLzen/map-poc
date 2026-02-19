@@ -1,0 +1,7 @@
+/* MapExportPanel.razor.css */
+
+.export-status {
+    padding: .25rem .5rem;
+    border-radius: .25rem;
+    background: rgba(0, 0, 0, .04);
+}

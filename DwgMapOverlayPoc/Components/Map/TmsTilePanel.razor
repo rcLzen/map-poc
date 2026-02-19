@@ -1,0 +1,92 @@
+@* ─────────────────────────────────────────────────────────────────────────
+   TmsTilePanel.razor
+   Loads tiles from the uploaded ZIP into the browser's in-memory tile cache,
+   then adds a custom Leaflet GridLayer that serves them without a tile server.
+   All C# helpers live in TmsTilePanel.razor.cs.
+   ───────────────────────────────────────────────────────────────────────── *@
+
+@inject TmsTileService  TmsService
+@inject DwgAssetService AssetService
+@implements IDisposable
+
+<section class="ctrl-section" aria-label="TMS tile controls">
+    <div class="ctrl-section__title">TMS TILES</div>
+
+    @if (IsZipReady())
+    {
+        @if (IsIdle() || IsError())
+        {
+            <button class="btn btn-sm btn-outline-light w-100"
+                    @onclick="LoadAsync">
+                Load Tiles from ZIP
+            </button>
+
+            @if (TmsService.LastError is not null)
+            {
+                <div class="tms-error">@TmsService.LastError</div>
+            }
+        }
+        else if (IsLoading())
+        {
+            <div class="upload-progress-wrap">
+                <div class="upload-progress-label">Loading tiles&hellip;</div>
+                <div class="upload-progress-track">
+                    <div class="upload-progress-bar tms-loading-bar"></div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @* Ready state *@
+            <div class="tms-info">
+                <span class="tms-count">@(TmsService.TileCount) tiles</span>
+                @if (TmsService.ZoomLevels.Length > 0)
+                {
+                    <span class="tms-zooms">Zoom @(FormatZooms())</span>
+                }
+            </div>
+
+            @if (!TmsService.IsLayerVisible)
+            {
+                <button class="btn btn-sm btn-success w-100" @onclick="ShowAsync">
+                    Show on Map
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-sm btn-outline-danger w-100" @onclick="HideAsync">
+                    Hide
+                </button>
+                <div class="align-opacity-row" style="margin-top:0.4rem">
+                    <label class="align-opacity-label">Opacity</label>
+                    <input type="range" min="0" max="100" value="@_opacityPct"
+                           class="align-opacity-slider"
+                           @oninput="OnOpacityInput" />
+                    <span class="align-opacity-val">@(_opacityPct)%</span>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <p class="ctrl-placeholder">Upload a TMS tiles ZIP to enable.</p>
+    }
+
+</section>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        TmsService.OnChanged          += HandleChanged;
+        AssetService.OnAssetsChanged  += HandleChanged;
+    }
+
+    private void HandleChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        TmsService.OnChanged          -= HandleChanged;
+        AssetService.OnAssetsChanged  -= HandleChanged;
+    }
+}
