@@ -1,14 +1,22 @@
 @* ──────────────────────────────────────────────────────────────────────────
    FileUploadPanel.razor
    Three upload cards rendered inside the sidebar ASSETS section.
-   All C# helpers live in FileUploadPanel.razor.cs (partial class).
 
-   States per card:
-     idle       – Choose-file drop zone + size limit label
-     uploading  – progress bar (Reading → Processing)
-     ready      – file info + thumbnail (PNG) / ZIP tree + remove button
-     error      – error message + retry drop zone
-     stub       – metadata from localStorage; re-upload prompt
+   InputFile stability strategy
+   ─────────────────────────────
+   Each card renders exactly ONE <InputFile> element, ALWAYS present in the
+   DOM regardless of upload state.  A Guid (@key) pins Blazor to the same
+   underlying <input> element across every re-render, so the browser-side
+   _blazorFilesById entry is never cleared mid-stream.
+
+   After an upload completes (success or error) or the asset is removed, the
+   Guid is rotated in the code-behind so the next file selection starts with a
+   clean element.
+
+   The label's `for` attribute always matches the single InputFile id for each
+   card — idle, retry, and re-upload labels all share the same id.
+
+   All C# helpers live in FileUploadPanel.razor.cs (partial class).
    ────────────────────────────────────────────────────────────────────────── *@
 
 @inject DwgAssetService AssetService
@@ -32,14 +40,20 @@
         }
     </div>
 
+    @* Single always-present InputFile — @key keeps the DOM element stable *@
+    <InputFile @key="_pngKey"
+               id="upload-png"
+               accept=".png"
+               Multiple="false"
+               class="upload-input-hidden"
+               OnChange="HandlePngChangeAsync" />
+
     @if (AssetService.PngAsset is null)
     {
         <label class="upload-drop-zone" for="upload-png">
             <span class="upload-drop-zone__icon">&#x1F4C2;</span>
             <span>Choose PNG&hellip;</span>
         </label>
-        <InputFile id="upload-png" accept=".png" class="upload-input-hidden"
-                   OnChange="@(e => _ = AssetService.UploadPngAsync(e.File))" />
         <div class="upload-limit">max @FormatMaxMB(DwgAssetService.MaxPngBytes)</div>
     }
     else if (AssetService.PngAsset.Status == UploadStatus.Reading
@@ -58,12 +72,10 @@
     else if (AssetService.PngAsset.Status == UploadStatus.Error)
     {
         <div class="upload-error-msg">@AssetService.PngAsset.ErrorMessage</div>
-        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-png-retry">
+        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-png">
             <span class="upload-drop-zone__icon">&#x1F4C2;</span>
             <span>Retry&hellip;</span>
         </label>
-        <InputFile id="upload-png-retry" accept=".png" class="upload-input-hidden"
-                   OnChange="@(e => _ = AssetService.UploadPngAsync(e.File))" />
     }
     else
     {
@@ -80,9 +92,7 @@
         @if (AssetService.PngAsset.IsStub)
         {
             <p class="upload-stub-warn">&#x26A0; Re-upload to activate on map.</p>
-            <label class="upload-reupload-btn" for="upload-png-re">Re-upload</label>
-            <InputFile id="upload-png-re" accept=".png" class="upload-input-hidden"
-                       OnChange="@(e => _ = AssetService.UploadPngAsync(e.File))" />
+            <label class="upload-reupload-btn" for="upload-png">Re-upload</label>
         }
     }
 
@@ -106,14 +116,20 @@
         }
     </div>
 
+    @* Single always-present InputFile — @key keeps the DOM element stable *@
+    <InputFile @key="_geoJsonKey"
+               id="upload-geojson"
+               accept=".geojson,.json"
+               Multiple="false"
+               class="upload-input-hidden"
+               OnChange="HandleGeoJsonChangeAsync" />
+
     @if (AssetService.GeoJsonAsset is null)
     {
         <label class="upload-drop-zone" for="upload-geojson">
             <span class="upload-drop-zone__icon">&#x1F4C2;</span>
             <span>Choose GeoJSON&hellip;</span>
         </label>
-        <InputFile id="upload-geojson" accept=".geojson,.json" class="upload-input-hidden"
-                   OnChange="@(e => _ = AssetService.UploadGeoJsonAsync(e.File))" />
         <div class="upload-limit">max @FormatMaxMB(DwgAssetService.MaxGeoJsonBytes)</div>
     }
     else if (AssetService.GeoJsonAsset.Status == UploadStatus.Reading
@@ -132,12 +148,10 @@
     else if (AssetService.GeoJsonAsset.Status == UploadStatus.Error)
     {
         <div class="upload-error-msg">@AssetService.GeoJsonAsset.ErrorMessage</div>
-        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-geojson-retry">
+        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-geojson">
             <span class="upload-drop-zone__icon">&#x1F4C2;</span>
             <span>Retry&hellip;</span>
         </label>
-        <InputFile id="upload-geojson-retry" accept=".geojson,.json" class="upload-input-hidden"
-                   OnChange="@(e => _ = AssetService.UploadGeoJsonAsync(e.File))" />
     }
     else
     {
@@ -150,9 +164,7 @@
         @if (AssetService.GeoJsonAsset.IsStub)
         {
             <p class="upload-stub-warn">&#x26A0; Re-upload to activate on map.</p>
-            <label class="upload-reupload-btn" for="upload-geojson-re">Re-upload</label>
-            <InputFile id="upload-geojson-re" accept=".geojson,.json" class="upload-input-hidden"
-                       OnChange="@(e => _ = AssetService.UploadGeoJsonAsync(e.File))" />
+            <label class="upload-reupload-btn" for="upload-geojson">Re-upload</label>
         }
     }
 
@@ -176,14 +188,20 @@
         }
     </div>
 
+    @* Single always-present InputFile — @key keeps the DOM element stable *@
+    <InputFile @key="_zipKey"
+               id="upload-zip"
+               accept=".zip"
+               Multiple="false"
+               class="upload-input-hidden"
+               OnChange="HandleZipChangeAsync" />
+
     @if (AssetService.ZipAsset is null)
     {
         <label class="upload-drop-zone" for="upload-zip">
             <span class="upload-drop-zone__icon">&#x1F4C2;</span>
             <span>Choose ZIP&hellip;</span>
         </label>
-        <InputFile id="upload-zip" accept=".zip" class="upload-input-hidden"
-                   OnChange="@(e => _ = AssetService.UploadZipAsync(e.File))" />
         <div class="upload-limit">max @FormatMaxMB(DwgAssetService.MaxZipBytes)</div>
     }
     else if (AssetService.ZipAsset.Status == UploadStatus.Reading
@@ -202,12 +220,10 @@
     else if (AssetService.ZipAsset.Status == UploadStatus.Error)
     {
         <div class="upload-error-msg">@AssetService.ZipAsset.ErrorMessage</div>
-        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-zip-retry">
+        <label class="upload-drop-zone upload-drop-zone--retry" for="upload-zip">
             <span class="upload-drop-zone__icon">&#x1F4C2;</span>
             <span>Retry&hellip;</span>
         </label>
-        <InputFile id="upload-zip-retry" accept=".zip" class="upload-input-hidden"
-                   OnChange="@(e => _ = AssetService.UploadZipAsync(e.File))" />
     }
     else
     {
@@ -220,9 +236,7 @@
         @if (AssetService.ZipAsset.IsStub)
         {
             <p class="upload-stub-warn">&#x26A0; Re-upload to activate on map.</p>
-            <label class="upload-reupload-btn" for="upload-zip-re">Re-upload</label>
-            <InputFile id="upload-zip-re" accept=".zip" class="upload-input-hidden"
-                       OnChange="@(e => _ = AssetService.UploadZipAsync(e.File))" />
+            <label class="upload-reupload-btn" for="upload-zip">Re-upload</label>
         }
         @if (AssetService.ZipAsset.ZipContents != null && AssetService.ZipAsset.ZipContents.Count > 0)
         {
@@ -265,11 +279,6 @@
 
 @code {
 
-    // Suppress re-renders while DwgAssetService has an open IBrowserFile stream.
-    // A re-render during streaming removes the InputFile DOM element and clears
-    // the JS _blazorFilesById entry, causing "Cannot read properties of null".
-    protected override bool ShouldRender() => !AssetService.IsReadingFile;
-
     protected override void OnInitialized()
         => AssetService.OnAssetsChanged += HandleAssetsChanged;
 
@@ -283,8 +292,4 @@
         => AssetService.OnAssetsChanged -= HandleAssetsChanged;
 
     private void HandleAssetsChanged() => InvokeAsync(StateHasChanged);
-
-    private Task RemovePngAsync()     => AssetService.RemovePngAsync();
-    private Task RemoveGeoJsonAsync() => AssetService.RemoveGeoJsonAsync();
-    private Task RemoveZipAsync()     => AssetService.RemoveZipAsync();
 }

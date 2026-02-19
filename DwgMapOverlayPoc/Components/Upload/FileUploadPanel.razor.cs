@@ -1,6 +1,7 @@
 using System.Net;
 using DwgMapOverlayPoc.Models;
 using DwgMapOverlayPoc.Services;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace DwgMapOverlayPoc.Components.Upload;
 
@@ -11,6 +12,70 @@ namespace DwgMapOverlayPoc.Components.Upload;
 /// </summary>
 public partial class FileUploadPanel
 {
+    // ── InputFile key management ──────────────────────────────────────────────
+    //
+    // Each Guid is used as the @key for its card's <InputFile>.  While the Guid
+    // is stable, Blazor's diffing algorithm reuses the same underlying <input>
+    // DOM element across every re-render, so the browser-side _blazorFilesById
+    // entry (and the IBrowserFile stream) is never invalidated mid-upload.
+    //
+    // After an upload finishes (success or error) or an asset is removed, the
+    // Guid is rotated so the browser sees a brand-new <input> element — clearing
+    // any previously selected file and resetting the card to idle.
+
+    private Guid _pngKey     = Guid.NewGuid();
+    private Guid _geoJsonKey = Guid.NewGuid();
+    private Guid _zipKey     = Guid.NewGuid();
+
+    // ── Upload handlers ───────────────────────────────────────────────────────
+    //
+    // Handlers are proper async Tasks (not fire-and-forget lambdas) so the
+    // IBrowserFile stays valid for the entire duration of the service call.
+    // The Guid is rotated AFTER the awaited call returns — i.e., after the
+    // stream has been fully read and closed — so the key is always stable while
+    // data is flowing.
+
+    private async Task HandlePngChangeAsync(InputFileChangeEventArgs e)
+    {
+        await AssetService.UploadPngAsync(e.File);
+        _pngKey = Guid.NewGuid();
+    }
+
+    private async Task HandleGeoJsonChangeAsync(InputFileChangeEventArgs e)
+    {
+        await AssetService.UploadGeoJsonAsync(e.File);
+        _geoJsonKey = Guid.NewGuid();
+    }
+
+    private async Task HandleZipChangeAsync(InputFileChangeEventArgs e)
+    {
+        await AssetService.UploadZipAsync(e.File);
+        _zipKey = Guid.NewGuid();
+    }
+
+    // ── Remove handlers ───────────────────────────────────────────────────────
+    //
+    // Rotating the key on remove ensures the <input> is replaced with a fresh
+    // element, so a subsequent upload doesn't carry stale browser file state.
+
+    private async Task RemovePngAsync()
+    {
+        await AssetService.RemovePngAsync();
+        _pngKey = Guid.NewGuid();
+    }
+
+    private async Task RemoveGeoJsonAsync()
+    {
+        await AssetService.RemoveGeoJsonAsync();
+        _geoJsonKey = Guid.NewGuid();
+    }
+
+    private async Task RemoveZipAsync()
+    {
+        await AssetService.RemoveZipAsync();
+        _zipKey = Guid.NewGuid();
+    }
+
     // ── CSS / label derivation ────────────────────────────────────────────────
 
     private static string CardCss(DwgAsset? a) => a?.Status switch

@@ -61,14 +61,6 @@ public sealed class DwgAssetService
     public DwgAsset? GeoJsonAsset { get; private set; }
     public DwgAsset? ZipAsset     { get; private set; }
 
-    /// <summary>
-    /// True while <see cref="ReadWithProgressAsync"/> has an open
-    /// <c>IBrowserFile.OpenReadStream</c>.  FileUploadPanel suppresses re-renders
-    /// during this window so the InputFile DOM element (and its JS file reference)
-    /// is not removed before the read completes.
-    /// </summary>
-    public bool IsReadingFile { get; private set; }
-
     /// <summary>Fired after every state mutation; components subscribe to re-render.</summary>
     public event Action? OnAssetsChanged;
 
@@ -348,41 +340,31 @@ public sealed class DwgAssetService
     /// <summary>
     /// Reads the browser file in 64 KB chunks, reporting progress via the asset.
     /// Progress saturates at 99 % — the caller sets 100 % after JS processing.
-    ///
-    /// Sets <see cref="IsReadingFile"/> = true for the duration of the open stream
-    /// so that FileUploadPanel can suppress Blazor re-renders via ShouldRender().
-    /// Re-renders that happen while IsReadingFile is true would remove the InputFile
-    /// DOM element and destroy the browser-side _blazorFilesById entry, which
-    /// causes "Cannot read properties of null (reading '_blazorFilesById')".
+    /// NotifyChanged is throttled to fire only when the integer percentage changes
+    /// (≤ 99 events per upload rather than one per 64 KB chunk).
     /// </summary>
     private async Task<byte[]> ReadWithProgressAsync(
         IBrowserFile file, long maxBytes, DwgAsset asset)
     {
-        IsReadingFile = true;
-        try
-        {
-            await using var stream = file.OpenReadStream(maxBytes);
-            var   buffer    = new byte[ChunkSize];
-            using var ms    = new MemoryStream((int)Math.Min(file.Size, int.MaxValue));
-            long  totalRead = 0;
-            int   read;
+        await using var stream = file.OpenReadStream(maxBytes);
+        var   buffer    = new byte[ChunkSize];
+        using var ms    = new MemoryStream((int)Math.Min(file.Size, int.MaxValue));
+        long  totalRead = 0;
+        int   read;
 
-            while ((read = await stream.ReadAsync(buffer)) > 0)
+        while ((read = await stream.ReadAsync(buffer)) > 0)
+        {
+            await ms.WriteAsync(buffer.AsMemory(0, read));
+            totalRead += read;
+            int newPct = (int)Math.Min(totalRead * 99L / Math.Max(file.Size, 1), 99);
+            if (newPct != asset.ProgressPercent)
             {
-                await ms.WriteAsync(buffer.AsMemory(0, read));
-                totalRead             += read;
-                asset.ProgressPercent  = (int)Math.Min(totalRead * 99L / Math.Max(file.Size, 1), 99);
-                // NotifyChanged() is intentionally NOT called here: while IsReadingFile
-                // is true FileUploadPanel suppresses renders anyway, and calling it
-                // would still queue unnecessary Blazor render batches.
+                asset.ProgressPercent = newPct;
+                NotifyChanged();
             }
+        }
 
-            return ms.ToArray();
-        }
-        finally
-        {
-            IsReadingFile = false;
-        }
+        return ms.ToArray();
     }
 
     private async Task RevokeAsync(DwgAsset? asset)
