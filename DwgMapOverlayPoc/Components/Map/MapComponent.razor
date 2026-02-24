@@ -38,7 +38,7 @@
                               width="100%"
                               height="100%"
                               Parameters="@_mapParams"
-                              onLoadMap="OnLeafletMapLoaded" />
+                              onLoadMap="OnMapReady" />
     }
     else
     {
@@ -144,7 +144,7 @@
     /// setBaseLayer to take ownership of the tile layer (replacing whatever
     /// LeafletForBlazor added), then notify the parent.
     /// </summary>
-    private async void OnLeafletMapLoaded(LeafletForBlazor.Map.OnLoadEventParameters args)
+    private async Task OnLeafletMapLoaded(LeafletForBlazor.Map.OnLoadEventParameters args)
     {
         try
         {
