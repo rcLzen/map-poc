@@ -1,71 +1,173 @@
 /**
  * leaflet-interop.js
- * Bridge between Blazor C# and the Leaflet map instance managed by
- * LeafletForBlazor. All public functions live under `window.leafletInterop`.
- *
- * Map-readiness guard
- * ───────────────────
- * LeafletForBlazor sets `window.LeafletBlazorMap` around the same time it
- * fires the C# `onLoadMap` callback — but the exact ordering is not
- * guaranteed.  Every function that needs the map calls `waitForMap()`, which:
- *
- *   • Fast path  (zero overhead once the map is up): if `window.LeafletBlazorMap`
- *     is already set, returns `Promise.resolve(map)` synchronously.
- *   • Slow path  (startup only, milliseconds): polls at 20 ms intervals until
- *     the reference is set, then resolves.  Times out after 6 s with a
- *     rejected Promise (surfaced as a JS console error).
- *
- * Polling is used deliberately instead of a one-shot signal/Promise because
- * the signal approach would resolve with `undefined` if called before
- * LeafletForBlazor assigns `window.LeafletBlazorMap`, producing silent
- * TypeErrors on all subsequent map operations.
- *
- * Other interop modules (align-interop, equipment-interop) call
- * `window.leafletInterop.waitForMap()` for the same guard.
- *
- * Tile-layer ownership strategy
- * ─────────────────────────────
- * LeafletForBlazor adds whatever is in Map.LoadParameters.basemap.basemap_layers
- * during initialisation. Rather than fighting that, setBaseLayer() performs a
- * clean sweep: it removes every L.TileLayer currently on the map (both from
- * LeafletForBlazor and any previous call to setBaseLayer) before adding the
- * new one. L.ImageOverlay instances (DWG overlays) are unaffected because
- * they are NOT L.TileLayer instances.
+ * Deterministic Leaflet map readiness and shared map access for Blazor interop.
  */
+
+'use strict';
 
 window.leafletInterop = (() => {
 
-    // ── Map-readiness polling ─────────────────────────────────────────────────
+    const State = Object.freeze({
+        Uninitialized: 'Uninitialized',
+        Capturing:     'Capturing',
+        Ready:         'Ready',
+        Failed:        'Failed'
+    });
 
-    /**
-     * Returns a Promise<L.Map> that resolves once `window.LeafletBlazorMap`
-     * is set by LeafletForBlazor.
-     *
-     * Fast path: if the map reference is already set the Promise resolves in
-     * the current microtask (no polling started).
-     *
-     * Slow path: checks every 20 ms, gives up after 300 attempts (~6 s).
-     *
-     * @returns {Promise<L.Map>}
-     */
-    function waitForMap() {
-        if (window.LeafletBlazorMap) {
-            return Promise.resolve(window.LeafletBlazorMap);
+    let _state = State.Uninitialized;
+    let _map = null;
+    let _readyResolve = null;
+    let _readyReject = null;
+    let _readyPromise = new Promise(function (resolve, reject) {
+        _readyResolve = resolve;
+        _readyReject  = reject;
+    });
+    let _lastError = null;
+    let _readyAt = null;
+    let _captureMethodUsed = null;
+    let _debug = true;
+    let _startupId = Math.random().toString(36).slice(2, 8);
+    let _onLoadMapFired = false;
+    let _assertedAfterLoad = false;
+    let _readyTimeoutId = null;
+
+    function timestamp() {
+        return new Date().toISOString();
+    }
+
+    function logInfo(message, data) {
+        if (!_debug) return;
+        if (data !== undefined) {
+            console.info(`[leafletInterop:${_startupId}] ${message}`, data);
+            return;
+        }
+        console.info(`[leafletInterop:${_startupId}] ${message}`);
+    }
+
+    function logWarn(message, data) {
+        if (!_debug) return;
+        if (data !== undefined) {
+            console.warn(`[leafletInterop:${_startupId}] ${message}`, data);
+            return;
+        }
+        console.warn(`[leafletInterop:${_startupId}] ${message}`);
+    }
+
+    function logError(message, data) {
+        if (data !== undefined) {
+            console.error(`[leafletInterop:${_startupId}] ${message}`, data);
+            return;
+        }
+        console.error(`[leafletInterop:${_startupId}] ${message}`);
+    }
+
+    function setDebug(enabled) {
+        _debug = !!enabled;
+    }
+
+    function captureMap(map, method) {
+        if (!map) {
+            logError('captureMap called without a valid Leaflet map instance');
+            return;
         }
 
-        return new Promise(function (resolve, reject) {
-            var attempts = 0;
-            var id = setInterval(function () {
-                if (window.LeafletBlazorMap) {
-                    clearInterval(id);
-                    console.info('[leafletInterop] map ready after', attempts * 20, 'ms');
-                    resolve(window.LeafletBlazorMap);
-                } else if (++attempts > 300) {          // 6 s timeout
-                    clearInterval(id);
-                    reject(new Error('[leafletInterop] Timed out waiting for Leaflet map (>6 s)'));
-                }
-            }, 20);
+        if (_state === State.Ready && _map) {
+            if (_map !== map) {
+                logWarn('captureMap called after readiness with a different instance');
+            }
+            return;
+        }
+
+        _map = map;
+        _state = State.Ready;
+        _readyAt = timestamp();
+        _captureMethodUsed = method || 'unknown';
+        if (_readyTimeoutId) {
+            clearTimeout(_readyTimeoutId);
+            _readyTimeoutId = null;
+        }
+        logInfo(`Map Ready (${_captureMethodUsed})`, {
+            mapId: map?._leaflet_id ?? null,
+            containerId: map?._container?.id ?? null
         });
+        if (_readyResolve) {
+            _readyResolve(_map);
+            _readyResolve = null;
+            _readyReject = null;
+        }
+    }
+
+    function failReady(message, details) {
+        if (_state === State.Ready || _state === State.Failed) return;
+        _state = State.Failed;
+        _lastError = { message, details, at: timestamp() };
+        logError(message, details);
+        if (_readyReject) {
+            _readyReject(new Error(message));
+            _readyReject = null;
+            _readyResolve = null;
+        }
+    }
+
+    function onLoadMap() {
+        _onLoadMapFired = true;
+        if (_state === State.Uninitialized) {
+            _state = State.Capturing;
+        }
+
+        if (_map) return;
+
+        if (!_assertedAfterLoad && window.L && !_map) {
+            _assertedAfterLoad = true;
+            logError('onLoadMap fired but no map captured yet. Ensure `leaflet-capture.js` is loaded after `leaflet-interop.js` and Leaflet is available.');
+        }
+
+        if (_readyTimeoutId) clearTimeout(_readyTimeoutId);
+        _readyTimeoutId = setTimeout(function () {
+            if (_state === State.Ready) return;
+            failReady('Map capture timed out after onLoadMap', diagnose());
+        }, 5000);
+    }
+
+    function whenMapReady(timeoutMs) {
+        if (_state === State.Ready && _map) return Promise.resolve(_map);
+        if (_state === State.Failed) return Promise.reject(new Error(_lastError?.message || 'Leaflet map readiness failed'));
+
+        const timeout = typeof timeoutMs === 'number' ? timeoutMs : 5000;
+        return Promise.race([
+            _readyPromise,
+            new Promise((_, reject) =>
+                setTimeout(function () {
+                    const diag = diagnose();
+                    logError('whenMapReady timeout', diag);
+                    reject(new Error('Leaflet map never became ready'));
+                }, timeout)
+            )
+        ]);
+    }
+
+    function getMapIfReady() {
+        return _map;
+    }
+
+    function getMapOrThrow() {
+        if (!_map) throw new Error('[leafletInterop] Map is not ready.');
+        return _map;
+    }
+
+    function diagnose() {
+        return {
+            state: _state,
+            hasLeaflet: !!window.L,
+            hasMap: !!_map,
+            mapId: _map?._leaflet_id ?? null,
+            containerId: _map?._container?.id ?? null,
+            lastError: _lastError,
+            readyAt: _readyAt,
+            captureMethodUsed: _captureMethodUsed,
+            startupId: _startupId,
+            onLoadMapFired: _onLoadMapFired
+        };
     }
 
     // ── State ────────────────────────────────────────────────────────────────
@@ -91,17 +193,17 @@ window.leafletInterop = (() => {
      * @param {number}  zoomOffset   Zoom offset – 0 for 256 px tiles
      */
     async function setBaseLayer(urlTemplate, attribution, maxZoom, tileSize, zoomOffset) {
-        const map = await waitForMap();
+        var map = await whenMapReady();
 
         // Collect all existing tile layers (LeafletForBlazor's initial layer
         // plus any previously added by us) so we can remove them safely.
         // We collect first, then remove, to avoid mutating the layer list
         // while iterating it.
-        const toRemove = [];
-        map.eachLayer(layer => {
+        var toRemove = [];
+        map.eachLayer(function (layer) {
             if (layer instanceof L.TileLayer) toRemove.push(layer);
         });
-        toRemove.forEach(l => map.removeLayer(l));
+        toRemove.forEach(function (l) { map.removeLayer(l); });
         _baseLayer = null;
 
         // Add the new tile layer below any existing overlays (pane: 'tilePane')
@@ -113,7 +215,7 @@ window.leafletInterop = (() => {
             detectRetina: true
         }).addTo(map);
 
-        console.info('[leafletInterop] setBaseLayer →', urlTemplate.split('/').slice(0, 6).join('/'));
+        logInfo('setBaseLayer OK');
     }
 
     // ── Map navigation ────────────────────────────────────────────────────────
@@ -126,7 +228,8 @@ window.leafletInterop = (() => {
      * @param {number} zoom
      */
     async function flyTo(lat, lng, zoom) {
-        const map = await waitForMap();
+        logInfo('flyTo called', { lat: lat, lng: lng, zoom: zoom });
+        const map = await whenMapReady();
         map.flyTo([lat, lng], zoom, { animate: true, duration: 1 });
     }
 
@@ -148,21 +251,22 @@ window.leafletInterop = (() => {
      * }>} overlays
      */
     async function syncOverlays(overlays) {
-        const map = await waitForMap();
+        var map = await whenMapReady();
 
-        const incomingIds = new Set(overlays.map(o => o.id));
+        var incomingIds = new Set(overlays.map(function (o) { return o.id; }));
 
         // Remove layers that are no longer in the incoming list
-        for (const [id, layer] of Object.entries(_overlayLayers)) {
+        for (var id in _overlayLayers) {
             if (!incomingIds.has(id)) {
-                map.removeLayer(layer);
+                map.removeLayer(_overlayLayers[id]);
                 delete _overlayLayers[id];
             }
         }
 
         // Add new layers or update opacity of existing ones
-        for (const overlay of overlays) {
-            const bounds = L.latLngBounds(
+        for (var i = 0; i < overlays.length; i++) {
+            var overlay = overlays[i];
+            var bounds = L.latLngBounds(
                 [overlay.southWestLat, overlay.southWestLng],
                 [overlay.northEastLat, overlay.northEastLng]
             );
@@ -170,7 +274,7 @@ window.leafletInterop = (() => {
             if (_overlayLayers[overlay.id]) {
                 _overlayLayers[overlay.id].setOpacity(overlay.opacity);
             } else {
-                const layer = L.imageOverlay(overlay.imageUrl, bounds, {
+                var layer = L.imageOverlay(overlay.imageUrl, bounds, {
                     opacity    : overlay.opacity,
                     interactive: false,
                     crossOrigin: true
@@ -185,11 +289,9 @@ window.leafletInterop = (() => {
      * Removes all image overlays from the map and clears the internal registry.
      */
     async function clearAllOverlays() {
-        const map = await waitForMap();
-        for (const layer of Object.values(_overlayLayers)) {
-            map.removeLayer(layer);
-        }
-        for (const key of Object.keys(_overlayLayers)) {
+        var map = await whenMapReady();
+        for (var key in _overlayLayers) {
+            map.removeLayer(_overlayLayers[key]);
             delete _overlayLayers[key];
         }
     }
@@ -202,10 +304,22 @@ window.leafletInterop = (() => {
      * ready; no await needed.
      */
     function getZoom() {
-        const map = window.LeafletBlazorMap;
-        return map ? map.getZoom() : 15;
+        return _map ? _map.getZoom() : 15;
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
-    return { waitForMap, setBaseLayer, flyTo, syncOverlays, clearAllOverlays, getZoom };
+    return {
+        setDebug:         setDebug,
+        captureMap:       captureMap,
+        onLoadMap:        onLoadMap,
+        whenMapReady:     whenMapReady,
+        getMapIfReady:    getMapIfReady,
+        getMapOrThrow:    getMapOrThrow,
+        diagnose:         diagnose,
+        setBaseLayer:     setBaseLayer,
+        flyTo:            flyTo,
+        syncOverlays:     syncOverlays,
+        clearAllOverlays: clearAllOverlays,
+        getZoom:          getZoom
+    };
 })();

@@ -4,68 +4,63 @@
  *
  * Requires:
  *   - window.L (Leaflet 1.9)
- *   - window.leafletInterop (leaflet-interop.js — provides waitForMap)
- *   - window.LeafletBlazorMap (set by LeafletForBlazor after map init)
+ *   - window.leafletInterop (leaflet-interop.js — provides whenMapReady)
  *
- * All functions that touch the map await window.leafletInterop.waitForMap()
- * so calls that arrive during startup queue safely instead of failing with
- * "map not ready yet".
+ * All functions that touch the map await window.leafletInterop.whenMapReady()
+ * so calls that arrive during startup queue safely instead of failing.
  *
  * Initialise once: equipmentInterop.init(dotNetRef)
  * Then call addMarker, removeMarker, startPlacementMode, etc.
  */
 
-window.equipmentInterop = (() => {
+window.equipmentInterop = (function () {
 
     /** Markers keyed by id string → L.Marker */
-    const _markers = {};
+    var _markers = {};
 
-    let _dotNetRef        = null;
-    let _placementHandler = null;
+    var _dotNetRef        = null;
+    var _placementHandler = null;
 
     // ── SVG icons ─────────────────────────────────────────────────────────────
 
-    const ICONS = {
-        Valve: (snapped) => `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="9" fill="${snapped ? '#00c853' : '#1565c0'}"
-                      stroke="white" stroke-width="2"/>
-              <text x="12" y="16" text-anchor="middle" fill="white"
-                    font-size="9" font-family="monospace" font-weight="bold">V</text>
-            </svg>`,
-
-        Pump: (snapped) => `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-              <polygon points="12,3 22,20 2,20"
-                       fill="${snapped ? '#00c853' : '#e65100'}"
-                       stroke="white" stroke-width="2"/>
-              <text x="12" y="19" text-anchor="middle" fill="white"
-                    font-size="8" font-family="monospace" font-weight="bold">P</text>
-            </svg>`,
-
-        Sensor: (snapped) => `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-              <rect x="3" y="3" width="18" height="18" rx="3"
-                    fill="${snapped ? '#00c853' : '#6a1b9a'}"
-                    stroke="white" stroke-width="2"/>
-              <text x="12" y="16" text-anchor="middle" fill="white"
-                    font-size="9" font-family="monospace" font-weight="bold">S</text>
-            </svg>`,
-
-        Custom: (snapped) => `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-              <polygon points="12,2 22,12 12,22 2,12"
-                       fill="${snapped ? '#00c853' : '#37474f'}"
-                       stroke="white" stroke-width="2"/>
-              <text x="12" y="16" text-anchor="middle" fill="white"
-                    font-size="9" font-family="monospace" font-weight="bold">C</text>
-            </svg>`
+    var ICONS = {
+        Valve: function (snapped) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
+              '<circle cx="12" cy="12" r="9" fill="' + (snapped ? '#00c853' : '#1565c0') + '"' +
+              ' stroke="white" stroke-width="2"/>' +
+              '<text x="12" y="16" text-anchor="middle" fill="white"' +
+              ' font-size="9" font-family="monospace" font-weight="bold">V</text></svg>';
+        },
+        Pump: function (snapped) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
+              '<polygon points="12,3 22,20 2,20"' +
+              ' fill="' + (snapped ? '#00c853' : '#e65100') + '"' +
+              ' stroke="white" stroke-width="2"/>' +
+              '<text x="12" y="19" text-anchor="middle" fill="white"' +
+              ' font-size="8" font-family="monospace" font-weight="bold">P</text></svg>';
+        },
+        Sensor: function (snapped) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
+              '<rect x="3" y="3" width="18" height="18" rx="3"' +
+              ' fill="' + (snapped ? '#00c853' : '#6a1b9a') + '"' +
+              ' stroke="white" stroke-width="2"/>' +
+              '<text x="12" y="16" text-anchor="middle" fill="white"' +
+              ' font-size="9" font-family="monospace" font-weight="bold">S</text></svg>';
+        },
+        Custom: function (snapped) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
+              '<polygon points="12,2 22,12 12,22 2,12"' +
+              ' fill="' + (snapped ? '#00c853' : '#37474f') + '"' +
+              ' stroke="white" stroke-width="2"/>' +
+              '<text x="12" y="16" text-anchor="middle" fill="white"' +
+              ' font-size="9" font-family="monospace" font-weight="bold">C</text></svg>';
+        }
     };
 
     function makeIcon(type, isSnapped) {
-        const svg = (ICONS[type] ?? ICONS.Custom)(isSnapped);
+        var iconFn = ICONS[type] || ICONS.Custom;
         return L.divIcon({
-            html:        svg,
+            html:        iconFn(isSnapped),
             className:   'equip-marker-icon',
             iconSize:    [24, 24],
             iconAnchor:  [12, 12],
@@ -81,17 +76,17 @@ window.equipmentInterop = (() => {
      */
     function init(dotNetRef) {
         _dotNetRef = dotNetRef;
-        console.info('[equipmentInterop] initialised');
+        console.info('[Equipment] initialised');
     }
 
     async function addMarker(id, type, label, lat, lng, isSnapped) {
-        const map = await window.leafletInterop.waitForMap();
+        var map = await window.leafletInterop.whenMapReady();
 
         if (_markers[id]) {
             map.removeLayer(_markers[id]);
         }
 
-        const marker = L.marker([lat, lng], {
+        var marker = L.marker([lat, lng], {
             draggable: true,
             icon:      makeIcon(type, isSnapped),
             title:     label
@@ -100,7 +95,7 @@ window.equipmentInterop = (() => {
         marker.bindTooltip(label, { permanent: false, direction: 'top', offset: [0, -14] });
 
         marker.on('dragend', function (e) {
-            const pos = e.target.getLatLng();
+            var pos = e.target.getLatLng();
             if (_dotNetRef) {
                 _dotNetRef.invokeMethodAsync('OnMarkerDragged', id, pos.lat, pos.lng);
             }
@@ -108,24 +103,28 @@ window.equipmentInterop = (() => {
 
         marker.addTo(map);
         _markers[id] = marker;
+        console.info('[Marker Placed] ' + label + ' at ' + lat.toFixed(5) + ', ' + lng.toFixed(5) +
+                     (isSnapped ? ' (snapped)' : ''));
     }
 
     async function removeMarker(id) {
-        const map = await window.leafletInterop.waitForMap();
+        var map = await window.leafletInterop.whenMapReady();
         if (_markers[id]) {
             map.removeLayer(_markers[id]);
             delete _markers[id];
+            console.info('[Equipment] marker removed: ' + id);
         }
     }
 
     function clearAllMarkers() {
         // Synchronous: called during dispose / clear-all.
         // Map is always ready by the time the user can trigger this.
-        const map = window.LeafletBlazorMap;
-        for (const [id, marker] of Object.entries(_markers)) {
-            if (map) map.removeLayer(marker);
+        var map = window.leafletInterop.getMapIfReady();
+        for (var id in _markers) {
+            if (map) map.removeLayer(_markers[id]);
             delete _markers[id];
         }
+        console.info('[Equipment] all markers cleared');
     }
 
     // ── Placement mode ────────────────────────────────────────────────────────
@@ -136,11 +135,15 @@ window.equipmentInterop = (() => {
      * Awaits map readiness so the button can be clicked immediately after load.
      */
     async function startPlacementMode() {
-        const map = await window.leafletInterop.waitForMap();
+        var map = await window.leafletInterop.whenMapReady();
 
         stopPlacementMode();
 
+        console.info('[Equipment] placement mode active — click map to place');
+
         _placementHandler = function (e) {
+            console.info('[Equipment] placement click at ' +
+                         e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5));
             _placementHandler = null;
             if (_dotNetRef) {
                 _dotNetRef.invokeMethodAsync('OnEquipmentClicked', e.latlng.lat, e.latlng.lng);
@@ -148,13 +151,11 @@ window.equipmentInterop = (() => {
         };
 
         map.once('click', _placementHandler);
-        console.info('[equipmentInterop] placement mode active');
     }
 
     function stopPlacementMode() {
-        // Synchronous cleanup — only needs the map ref if a handler exists.
-        const map = window.LeafletBlazorMap;
         if (_placementHandler) {
+            var map = window.leafletInterop.getMapIfReady();
             if (map) map.off('click', _placementHandler);
             _placementHandler = null;
         }
@@ -163,9 +164,9 @@ window.equipmentInterop = (() => {
     // ── GeoJSON download ──────────────────────────────────────────────────────
 
     function downloadGeoJson(json) {
-        const blob = new Blob([json], { type: 'application/geo+json' });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
+        var blob = new Blob([json], { type: 'application/geo+json' });
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
         a.href     = url;
         a.download = 'equipment.geojson';
         a.click();
@@ -174,12 +175,12 @@ window.equipmentInterop = (() => {
 
     // ── Public API ────────────────────────────────────────────────────────────
     return {
-        init,
-        addMarker,
-        removeMarker,
-        clearAllMarkers,
-        startPlacementMode,
-        stopPlacementMode,
-        downloadGeoJson
+        init:               init,
+        addMarker:          addMarker,
+        removeMarker:       removeMarker,
+        clearAllMarkers:    clearAllMarkers,
+        startPlacementMode: startPlacementMode,
+        stopPlacementMode:  stopPlacementMode,
+        downloadGeoJson:    downloadGeoJson
     };
 })();

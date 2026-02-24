@@ -6,7 +6,7 @@
  * Requires:
  *   - JSZip (loaded before Blazor)
  *   - window.L (Leaflet 1.9)
- *   - window.LeafletBlazorMap
+ *   - window.leafletInterop (leaflet-interop.js — provides whenMapReady)
  *
  * ZIP format expected:
  *   {z}/{x}/{y}.png  — standard XYZ / slippy-map tile layout
@@ -24,10 +24,6 @@ window.xyzInterop = (() => {
     const _blobUrls = [];
 
     let _xyzLayer = null;
-
-    function getMap() {
-        return window.LeafletBlazorMap ?? null;
-    }
 
     // ── Tile loading ──────────────────────────────────────────────────────────
 
@@ -80,9 +76,8 @@ window.xyzInterop = (() => {
 
     // ── Leaflet GridLayer ─────────────────────────────────────────────────────
 
-    function addXyzLayer() {
-        const map = getMap();
-        if (!map) { console.warn('[xyzInterop] addXyzLayer: map not ready'); return; }
+    async function addXyzLayer() {
+        const map = await window.leafletInterop.whenMapReady();
         if (_xyzLayer) { map.removeLayer(_xyzLayer); _xyzLayer = null; }
 
         _xyzLayer = L.gridLayer({ tileSize: 256, opacity: 1 });
@@ -108,7 +103,7 @@ window.xyzInterop = (() => {
     }
 
     function removeXyzLayer() {
-        const map = getMap();
+        const map = window.leafletInterop.getMapIfReady();
         if (_xyzLayer) {
             if (map) map.removeLayer(_xyzLayer);
             _xyzLayer = null;

@@ -14,48 +14,87 @@ dotnet build DwgMapOverlayPoc/DwgMapOverlayPoc.csproj
 # Run (hot-reload dev server on https://localhost:5001)
 dotnet run --project DwgMapOverlayPoc/DwgMapOverlayPoc.csproj
 
-# Publish (produces dist/ with pre-compressed assets + service worker)
+# Run tests
+dotnet test DwgMapOverlayPoc/DwgMapOverlayPoc.Tests/DwgMapOverlayPoc.Tests.csproj
+
+# Publish (produces pre-compressed assets + service worker)
 dotnet publish DwgMapOverlayPoc/DwgMapOverlayPoc.csproj -c Release -o publish/
 ```
 
-There are no unit tests in this repo yet. No linter is configured beyond the compiler.
+No linter is configured beyond the compiler.
 
 ## Architecture Overview
 
-**Stack**: .NET 8 Blazor WebAssembly PWA + Leaflet 1.9 (CDN) + LeafletForBlazor 1.2.0 (NuGet)
+**Stack**: .NET 8 Blazor WebAssembly PWA + Leaflet 1.9.4 (CDN) + LeafletForBlazor 1.2.0 (NuGet)
 
-### Key Wiring
+**CDN dependencies** (loaded in `index.html` before Blazor boots): Leaflet 1.9.4, JSZip 3.10.1, Turf.js v6, html2canvas 1.4.1. `Leaflet.ImageOverlay.Rotated` is bundled locally.
+
+### Boot Sequence
 
 ```
 index.html
-  → Leaflet JS (CDN, window.L)    ← must exist before Blazor boots
-  → leaflet-interop.js            ← window.leafletInterop IIFE, uses window.LeafletBlazorMap
-  → blazor.webassembly.js
+  → Leaflet JS (CDN, window.L)
+  → JSZip, Turf.js, html2canvas (CDN)
+  → Leaflet.ImageOverlay.Rotated.js (local, extends L)
+  → idb-interop.js → asset-interop.js (must be in this order)
+  → leaflet-interop.js (exposes whenMapReady + captureMap)
+  → leaflet-capture.js (L.Map addInitHook -> captureMap)
+  → align-interop.js, xyz-interop.js, snap-interop.js,
+    equipment-interop.js, map-export-interop.js
+  → blazor.webassembly.js (boots last)
       → MapComponent.razor
-          → <Map> (LeafletForBlazor) → sets window.LeafletBlazorMap
-          → OnLeafletMapLoaded()    → calls leafletInterop.setBaseLayer / syncOverlays
+          → <Map> (LeafletForBlazor)
+          → OnLeafletMapLoaded() → onLoadMap() → setBaseLayer / syncOverlays
+          → fires OnMapReady EventCallback to MainLayout
 ```
 
-### JS Interop Pattern
+### JS Interop Architecture
 
-`wwwroot/js/leaflet-interop.js` is the sole bridge between C# and Leaflet. All map mutations go through `window.leafletInterop`:
+Each feature area has its own `window.*` JS module. C# services call them via `IJSRuntime.InvokeVoidAsync("moduleName.method", ...)`.
 
-- `setBaseLayer(urlTemplate, attribution, maxZoom, tileSize, zoomOffset)` — sweeps **all** `L.TileLayer` instances off the map (including the one LeafletForBlazor adds at init), then adds the new one. This is intentional: we own tile layer management after first call.
-- `flyTo(lat, lng, zoom)` — Leaflet's `flyTo`
-- `syncOverlays(overlays)` — diff-based: removes layers not in the incoming array, adds new `L.imageOverlay` for new ones, updates opacity for existing ones. State is kept in `_overlayLayers` (id → L.ImageOverlay).
+| JS Module (`window.*`) | C# Consumer | Purpose |
+|---|---|---|
+| `leafletInterop` | `MapComponent` | Base layer, flyTo, overlay sync, `whenMapReady()` |
+| `alignInterop` | `QuickAlignService` | Rotated image overlay, map-click capture for 3-point alignment |
+| `xyzInterop` | `XyzTileService` | JSZip unpack → in-memory tile cache → custom GridLayer |
+| `snapInterop` | `SnappingService` | Turf.js nearest-point/nearest-on-line |
+| `equipmentInterop` | `EquipmentService` | SVG markers, drag events, GeoJSON export |
+| `assetInterop` | `DwgAssetService` | Blob URL creation, thumbnails, localStorage |
+| `idbInterop` | `DwgAssetService` | IndexedDB persistence (DB: `"dwg-map-poc-v1"`, store: `"assets"`) |
+| `mapExportInterop` | `MapExportPanel` | html2canvas screenshot, file downloads |
 
-C# calls interop via `IJSRuntime.InvokeVoidAsync("leafletInterop.methodName", ...)`.
+### Map Readiness Pattern
+
+**Critical**: LeafletForBlazor 1.2.0 does **not** expose the Leaflet map instance to `window`. The project captures the map using `L.Map.addInitHook` in `leaflet-capture.js`, which calls `leafletInterop.captureMap(...)`.
+
+`leafletInterop.whenMapReady()` returns a Promise that resolves with the map instance. It uses a deterministic flow:
+1. `leaflet-capture.js` captures the map instance as soon as Leaflet constructs it.
+2. `MapComponent.OnLeafletMapLoaded` calls `leafletInterop.onLoadMap()` to finalize readiness sequencing.
+3. All pending `whenMapReady()` callers resolve immediately when the map is captured.
+
+**All interop functions that touch the map must `await whenMapReady()` first.** Synchronous cleanup functions use `leafletInterop.getMapIfReady()` when needed.
+
+`MapComponent.razor` fires `[Parameter] EventCallback OnMapReady` after `OnLeafletMapLoaded` successfully calls `onLoadMap` + `setBaseLayer`. `MainLayout` subscribes to know when `SetBaseMapAsync` is safe.
+
+### Services (all Scoped)
+
+| Service | JS Interop | Purpose |
+|---|---|---|
+| `BaseMapService` | none | Provider catalogue (OSM/CartoDB/Mapbox); reads `Mapbox:Token` from config |
+| `OverlayService` | none | In-memory `MapOverlayModel` list; fires `event Action? OnChange` |
+| `TileService` | none | Built-in `TileSourceModel` list (OSM, OSM HOT, ESRI) |
+| `DwgAssetService` | `assetInterop`, `idbInterop` | Upload slots (PNG/GeoJSON/ZIP): validate, stream, blob URLs, IDB persist/restore |
+| `QuickAlignService` | `alignInterop` | 3-point affine transform (Cramer's rule in C#) → `L.imageOverlay.rotated` |
+| `XyzTileService` | `xyzInterop` | ZIP → in-memory XYZ tile cache → Leaflet GridLayer |
+| `SnappingService` | `snapInterop` | GeoJSON snap; converts pixel radius to degree tolerance |
+| `EquipmentService` | `equipmentInterop`, `leafletInterop` | Marker CRUD + snap + GeoJSON export; holds `DotNetObjectReference` (implements `IAsyncDisposable`) |
 
 ### LeafletForBlazor v1.2.0 API
 
 The NuGet README documents a different API version. Actual types in v1.2.0:
 
 ```csharp
-Map.LoadParameters {
-    basemap: Map.Basemap {
-        basemap_layers: List<Map.BasemapConfigLayer>
-    }
-}
+Map.LoadParameters { basemap: Map.Basemap { basemap_layers: List<Map.BasemapConfigLayer> } }
 Map.OnLoadEventParameters  // callback parameter from OnLeafletMapLoaded
 ```
 
@@ -63,40 +102,36 @@ Map.OnLoadEventParameters  // callback parameter from OnLeafletMapLoaded
 
 ### CSS Height Chain
 
-The Leaflet map must have a continuous chain of defined heights all the way from `html` down to its container `div`. Every level matters:
+The Leaflet map needs an unbroken chain of defined heights from `html` to its container:
 
 ```
 html(100%) → body(100%) → #app(100%) → .shell(100vh)
   → .map-area(flex:1) → .map-wrapper(100%) → .leaflet-container(100%)
 ```
 
-`app.css` owns the top of the chain (`html`, `body`, `#app`). `MainLayout.razor.css` owns `.shell` and `.map-area`. `MapComponent.razor.css` owns `.map-wrapper` and uses `::deep .leaflet-container` to pierce Blazor CSS isolation into LeafletForBlazor's DOM.
+`app.css` owns `html/body/#app`. `MainLayout.razor.css` owns `.shell/.map-area`. `MapComponent.razor.css` owns `.map-wrapper` and uses `::deep .leaflet-container` to pierce Blazor CSS isolation into LeafletForBlazor's DOM.
 
 ### CSS Isolation Quirk
 
-`::deep` in a `.razor.css` file compiles to a descendant selector without the scope hash on the leaf element — e.g., `.map-wrapper[b-hash] .leaflet-container`. This is required to reach elements rendered by child components (LeafletForBlazor) that are not in your own template.
+`::deep` in `.razor.css` compiles to a descendant selector without the scope hash on the leaf element — e.g., `.map-wrapper[b-hash] .leaflet-container`. Required to reach elements rendered by child components.
 
 ### CDN SRI
 
-`integrity=` attributes are intentionally absent from all CDN `<link>` and `<script>` tags in `index.html`. unpkg.com's variable content-encoding causes Chrome to silently reject resources even when the bytes are correct.
+`integrity=` attributes are intentionally absent from CDN tags in `index.html`. unpkg.com's variable content-encoding causes Chrome to silently reject resources even when bytes are correct.
 
-### Services
+### IndexedDB Persistence
 
-| Service | Scope | Purpose |
-|---|---|---|
-| `BaseMapService` | Scoped | URL templates & attribution for OSM / CartoDB / Mapbox providers; reads Mapbox token from `IConfiguration` ("Mapbox:Token" in `wwwroot/appsettings.json`) |
-| `OverlayService` | Scoped | In-memory list of `MapOverlayModel`; fires `event Action? OnChange` on mutations |
-| `TileService` | Scoped | Predefined `TileSourceModel` list (OSM, ESRI); reserved for future offline tile-pack work — not yet consumed by any component |
+`DwgAssetService` stores uploaded asset blobs in IndexedDB via `idbInterop`. On page reload, `LoadMetadataAsync()` attempts IDB restore first (assets become immediately usable without re-upload), then falls back to localStorage stubs. DB name: `"dwg-map-poc-v1"`, object store: `"assets"`, keys: `"png" | "geojson" | "zip"`.
 
 ### Mapbox Token
 
-`wwwroot/appsettings.json` holds `{ "Mapbox": { "Token": "pk.REPLACE_WITH_YOUR_MAPBOX_TOKEN" } }`. `BaseMapService.HasValidMapboxToken` returns false when the token equals that placeholder string, and the sidebar shows a warning badge.
+`wwwroot/appsettings.json` holds `{ "Mapbox": { "Token": "pk.REPLACE_WITH_YOUR_MAPBOX_TOKEN" } }`. `BaseMapService.HasValidMapboxToken` returns false when the token equals that placeholder, and the sidebar shows a warning badge.
 
 ### PWA / Service Worker
 
-`service-worker.js` (dev) is a no-op passthrough. `service-worker.published.js` (Release publish) pre-caches Blazor assets and CDN resources, and uses stale-while-revalidate for map tiles (`map-tiles-v1` cache). The `.csproj` ServiceWorker item maps dev → published at publish time.
+`service-worker.js` (dev) is a no-op passthrough. `service-worker.published.js` (Release publish) pre-caches Blazor assets and CDN resources, and uses stale-while-revalidate for map tiles (`map-tiles-v1` cache, up to 2000 tiles). The `.csproj` ServiceWorker item maps dev → published at publish time.
 
-## Razor Gotchas (learned in Task 3)
+## Razor Gotchas
 
 These patterns **break the Razor parser** silently — use the alternatives:
 
@@ -109,27 +144,13 @@ These patterns **break the Razor parser** silently — use the alternatives:
 
 **Rule of thumb**: Put any C# containing `{ }` in lambdas, switch expressions, or string interpolations into a `.razor.cs` code-behind file. Keep `@code` blocks to lifecycle methods + event handlers only.
 
-## Project Layout
+## Component Architecture
 
-```
-DwgMapOverlayPoc/
-  Components/Map/
-    MapComponent.razor       # Leaflet host; public API: SetBaseMapAsync, FlyToAsync
-    MapComponent.razor.css
-  Layout/
-    MainLayout.razor         # Shell + sidebar controls; holds @ref to MapComponent
-    MainLayout.razor.css
-  Models/
-    BasemapGroup.cs          # Groups light+dark TileSourceModel per provider
-    MapOverlayModel.cs       # DWG/image overlay (bounds + opacity + visibility)
-    TileSourceModel.cs       # Single tile source; includes MapTheme enum
-  Services/
-    BaseMapService.cs
-    OverlayService.cs
-    TileService.cs
-  wwwroot/
-    appsettings.json         # Mapbox token (gitignore or replace before deploy)
-    css/app.css              # Viewport reset — do not remove height/margin rules
-    js/leaflet-interop.js    # All Leaflet JS lives here
-    tiles/                   # Reserved for offline tile packs
-```
+`MainLayout.razor` is the shell: collapsible sidebar (280 px) + full-screen map. It owns all sidebar state (`_activeGroupKey`, `_activeTheme`, `_overlayMode` enum: `None/QuickAlign/Xyz`) and holds `@ref` to `MapComponent`. No `.razor.cs` code-behind — all code is inline `@code`. `MapComponent.razor` also has no `.razor.cs`.
+
+Panels with code-behind (`.razor.cs`):
+- `AlignmentPanel` — manages `ControlPoint[]`, pixel/world coordinates, map-click capture
+- `EquipmentPanel` — monitors `DwgAssetService` for GeoJSON readiness, auto-loads snap layer
+- `XyzTilePanel` — drives ZIP→tile-cache→GridLayer lifecycle
+- `MapExportPanel` — screenshot capture + download
+- `FileUploadPanel` — three upload slots with rotating `Guid` keys for stable `InputFile` elements

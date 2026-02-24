@@ -108,8 +108,12 @@
             }
             else
             {
-                <button class="btn btn-sm btn-outline-danger"
-                        @onclick="RemoveAsync">Remove overlay</button>
+                <div class="align-overlay-btns">
+                    <button class="btn btn-sm btn-outline-info"
+                            @onclick="ZoomToOverlayAsync">Zoom to overlay</button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            @onclick="RemoveAsync">Remove overlay</button>
+                </div>
                 <div class="align-opacity-row">
                     <label class="align-opacity-label">Opacity</label>
                     <input type="range" min="0" max="100" value="@_opacityPct"

@@ -107,6 +107,16 @@
                         @_activeSourceLabel
                     </div>
 
+                    @* Go-to coordinates *@
+                    <div class="ctrl-goto-row">
+                        <input class="ctrl-goto-input" type="number" step="any"
+                               placeholder="Lat" @bind="_goToLat" @bind:event="onchange" />
+                        <input class="ctrl-goto-input" type="number" step="any"
+                               placeholder="Lng" @bind="_goToLng" @bind:event="onchange" />
+                        <button class="btn btn-sm btn-outline-light ctrl-goto-btn"
+                                @onclick="GoToLocationAsync">Go</button>
+                    </div>
+
                 </section>
 
                 @* ── ASSETS section ────────────────────────────────────────────
@@ -192,6 +202,10 @@
 
     private enum OverlayMode { None, QuickAlign, Xyz }
 
+    // Go-to location fields
+    public double _goToLat = 34.74774204092415;
+    public double _goToLng = 134.83906177386527;
+
     // ─────────────────────────────────────────────────────────────────────────
     // Lifecycle
     // ─────────────────────────────────────────────────────────────────────────
@@ -273,9 +287,17 @@
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
+    private async Task GoToLocationAsync()
+    {
+        if (_mapComponent is not null)
+            await _mapComponent.FlyToAsync(_goToLat, _goToLng);
+        StateHasChanged();
+    }
+
     private void UpdateActiveLabel(TileSourceModel? source = null)
     {
         source ??= BaseMapService.GetTileSource(_activeGroupKey, _activeTheme);
         _activeSourceLabel = source.Label;
+        StateHasChanged();
     }
 }

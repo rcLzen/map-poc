@@ -20,7 +20,14 @@ window.snapInterop = (() => {
     async function loadGeoJson(blobUrl) {
         try {
             const resp = await fetch(blobUrl);
-            const data = await resp.json();
+            let data;
+            try {
+                data = await resp.json();
+            } catch (err) {
+                _geoJson = null;
+                console.error('[snapInterop] invalid GeoJSON payload:', blobUrl, err?.message || err);
+                return;
+            }
             // Normalise: accept either a FeatureCollection or a bare Feature/geometry
             if (data.type === 'FeatureCollection') {
                 _geoJson = data;
@@ -34,7 +41,7 @@ window.snapInterop = (() => {
             console.info('[snapInterop] GeoJSON loaded,', _geoJson.features.length, 'features');
         } catch (err) {
             _geoJson = null;
-            console.error('[snapInterop] loadGeoJson failed:', err);
+            console.error('[snapInterop] loadGeoJson failed:', blobUrl, err);
         }
     }
 

@@ -126,6 +126,18 @@ public partial class AlignmentPanel
         StateHasChanged();
     }
 
+    // ── Zoom to overlay ────────────────────────────────────────────────────
+
+    private async Task ZoomToOverlayAsync()
+    {
+        if (!_hasOverlay) return;
+
+        var centerLat = (_worldLat[0] + _worldLat[1] + _worldLat[2]) / 3.0;
+        var centerLng = (_worldLng[0] + _worldLng[1] + _worldLng[2]) / 3.0;
+
+        await JS.InvokeVoidAsync("leafletInterop.flyTo", centerLat, centerLng, 17);
+    }
+
     // ── Opacity ───────────────────────────────────────────────────────────────
 
     private async Task OnOpacityInput(ChangeEventArgs e)

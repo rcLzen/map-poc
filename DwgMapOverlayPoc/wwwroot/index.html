@@ -51,6 +51,23 @@
         <a class="dismiss">&#x1F5D9;</a>
     </div>
 
+    <!-- ─── Script loading order ─────────────────────────────────────────────
+         1. Leaflet JS (CDN)              — sets window.L
+         2. JSZip (CDN)                   — sets window.JSZip
+         3. Leaflet.ImageOverlay.Rotated  — extends window.L (LOCAL, must be after Leaflet)
+         4. Turf.js (CDN)                 — sets window.turf
+         5. idb-interop                   — IndexedDB persistence
+         6. asset-interop                 — Blob URLs, localStorage (after JSZip)
+         7. leaflet-interop               — map readiness + shared interop
+         8. leaflet-capture               — L.Map init hook -> leafletInterop.captureMap
+         9. html2canvas (CDN)             — screenshot export
+        10. align-interop                 — rotated overlay + click capture
+        11. xyz-interop                   — ZIP tile cache + GridLayer
+        12. snap-interop                  — Turf.js snapping queries
+        13. equipment-interop             — SVG markers + drag + placement
+        14. map-export-interop            — html2canvas + download
+        15. blazor.webassembly.js         — Blazor WASM runtime (LAST)
+         ──────────────────────────────────────────────────────────────────── -->
     <!-- Leaflet 1.9.4 JS – must exist on window.L before Blazor boots
          so that leaflet-interop.js can call L.tileLayer / L.imageOverlay.
          SRI omitted for the same reliability reason as the CSS above. -->
@@ -78,8 +95,9 @@
     <script src="js/asset-interop.js"></script>
 
     <!-- Leaflet JS interop bridge – must load after Leaflet, before Blazor.
-         Exposes waitForMap() / notifyMapReady() used by all other interop files. -->
+         Exposes whenMapReady() and captureMap() used by all other interop files. -->
     <script src="js/leaflet-interop.js"></script>
+    <script src="js/leaflet-capture.js"></script>
 
     <!-- html2canvas 1.4.1 – map screenshot export (Task 10).
          Must load before Blazor boots so mapExportInterop can reference it. -->
@@ -100,7 +118,6 @@
 
     <!-- Map export interop – html2canvas screenshot + GeoJSON download (Task 10) -->
     <script src="js/map-export-interop.js"></script>
-
     <!-- Blazor WASM runtime – boots last, after all JS dependencies are ready -->
     <script src="_framework/blazor.webassembly.js"></script>
 
@@ -141,21 +158,8 @@
                 transform: translateY(0);
             }
     </style>
-    <div id="offline-toast" role="status" aria-live="polite">
-        &#10003;&nbsp;App ready for offline use
-    </div>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('message', function (event) {
-                if (event.data && event.data.type === 'OFFLINE_READY') {
-                    var el = document.getElementById('offline-toast');
-                    if (!el) return;
-                    el.classList.add('show');
-                    setTimeout(function () { el.classList.remove('show'); }, 3500);
-                }
-            });
-        }
-    </script>
+
+ 
 </body>
 
 </html>

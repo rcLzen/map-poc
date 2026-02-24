@@ -91,6 +91,18 @@
 }
 .align-cp-clear:hover { color: #ef9a9a; }
 
+/* ── Overlay action buttons (zoom + remove) ───────────────────────────────── */
+
+.align-overlay-btns {
+    display: flex;
+    gap: 0.35rem;
+}
+.align-overlay-btns .btn {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    flex: 1;
+}
+
 /* ── Actions row ───────────────────────────────────────────────────────────── */
 
 .align-actions {
