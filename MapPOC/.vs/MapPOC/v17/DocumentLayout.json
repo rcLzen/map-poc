@@ -1,0 +1,217 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\layout\\navmenu.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\layout\\navmenu.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\app.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\app.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\routes.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\routes.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\_imports.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\_imports.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 28,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:11:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:20:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:6:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:10:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:16:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:14:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:25:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:26:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:27:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e3fb24c2-2e84-3146-a5f8-bc25bbc68f8a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{55f480fa-fbef-4386-8c1c-ea8d10c9f542}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "NavMenu.razor",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\NavMenu.razor",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Layout\\NavMenu.razor",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\NavMenu.razor",
+              "RelativeToolTip": "MapPOC\\Components\\Layout\\NavMenu.razor",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAA4AAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-25T04:17:37.807Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "App.razor",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\App.razor",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\App.razor",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\App.razor",
+              "RelativeToolTip": "MapPOC\\Components\\App.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-25T04:17:31.942Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Routes.razor",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Routes.razor",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Routes.razor",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Routes.razor",
+              "RelativeToolTip": "MapPOC\\Components\\Routes.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-25T04:16:29.193Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "_Imports.razor",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\_Imports.razor",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\_Imports.razor",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\_Imports.razor",
+              "RelativeToolTip": "MapPOC\\Components\\_Imports.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-25T04:16:17.005Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Program.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Program.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Program.cs",
+              "RelativeToolTip": "MapPOC\\Program.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAAtwB0AAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:15:08.803Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

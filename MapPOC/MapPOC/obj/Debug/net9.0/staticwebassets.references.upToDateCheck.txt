@@ -1,0 +1,1 @@
+C:\Users\rc_lo\source\repos\map-poc\MapPOC\MapPOC.Client\obj\Debug\net9.0\staticwebassets.build.json
