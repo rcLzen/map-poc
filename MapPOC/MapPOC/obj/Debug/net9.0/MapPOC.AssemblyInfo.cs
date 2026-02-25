@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MapPOC")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+583117761fb752edcc3ec8232463ae4e4f922958")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a5dddceeb8576f5902193536723195acf65f67ad")]
 [assembly: System.Reflection.AssemblyProductAttribute("MapPOC")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MapPOC")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
