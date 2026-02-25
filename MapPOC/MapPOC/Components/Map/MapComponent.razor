@@ -1,0 +1,95 @@
+@using MapPOC.Services
+@using MapPOC.Models
+@inject IJSRuntime JS
+@inject MapService MapService
+@inject EquipmentService EquipmentService
+@implements IAsyncDisposable
+
+<div id="leaflet-map" class="map-container" @ref="_mapElement"></div>
+
+@code {
+    private ElementReference _mapElement;
+    private DotNetObjectReference<MapComponent>? _dotNetRef;
+    private bool _mapInitialized;
+
+    [Parameter] public double InitialLatitude { get; set; } = 32.0853;
+    [Parameter] public double InitialLongitude { get; set; } = 34.7818;
+    [Parameter] public int InitialZoom { get; set; } = 13;
+    [Parameter] public EventCallback<(double Lat, double Lng)> OnMapClick { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+
+            await JS.InvokeVoidAsync("MapInterop.initMap",
+                "leaflet-map", InitialLatitude, InitialLongitude, InitialZoom);
+
+            await JS.InvokeVoidAsync("MapInterop.registerClickHandler", _dotNetRef);
+
+            _mapInitialized = true;
+
+            MapService.OnBaseLayerChanged += OnBaseLayerChanged;
+            EquipmentService.OnMarkersChanged += OnMarkersChanged;
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnMapClicked(double lat, double lng)
+    {
+        if (OnMapClick.HasDelegate)
+        {
+            await OnMapClick.InvokeAsync((lat, lng));
+        }
+    }
+
+    private async void OnBaseLayerChanged()
+    {
+        if (!_mapInitialized) return;
+        var layer = MapService.ActiveBaseLayer;
+        await JS.InvokeVoidAsync("MapInterop.setBaseLayer",
+            layer.UrlTemplate, layer.Attribution, layer.MaxZoom);
+    }
+
+    private async void OnMarkersChanged()
+    {
+        if (!_mapInitialized) return;
+        await JS.InvokeVoidAsync("MapInterop.clearMarkers");
+        foreach (var marker in EquipmentService.Markers)
+        {
+            await JS.InvokeVoidAsync("MapInterop.addMarker",
+                marker.Id, marker.Latitude, marker.Longitude,
+                $"<b>{marker.Name}</b><br/>{marker.Description}");
+        }
+    }
+
+    public async Task FlyToAsync(double lat, double lng, int zoom)
+    {
+        if (_mapInitialized)
+        {
+            await JS.InvokeVoidAsync("MapInterop.flyTo", lat, lng, zoom);
+        }
+    }
+
+    public async Task InvalidateSizeAsync()
+    {
+        if (_mapInitialized)
+        {
+            await JS.InvokeVoidAsync("MapInterop.invalidateSize");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        MapService.OnBaseLayerChanged -= OnBaseLayerChanged;
+        EquipmentService.OnMarkersChanged -= OnMarkersChanged;
+
+        if (_mapInitialized)
+        {
+            await JS.InvokeVoidAsync("MapInterop.dispose");
+        }
+
+        _dotNetRef?.Dispose();
+    }
+}

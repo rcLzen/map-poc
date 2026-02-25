@@ -1,4 +1,11 @@
 is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = true
+build_property.IncludeAllContentForSelfExtract = 
+build_property.MudDebugAnalyzer = 
+build_property.MudAllowedAttributePattern = 
+build_property.MudAllowedAttributeList = 
 build_property.TargetFramework = net9.0
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
@@ -11,7 +18,7 @@ build_property.RootNamespace = MapPOC
 build_property.RootNamespace = MapPOC
 build_property.ProjectDir = C:\Users\rc_lo\source\repos\map-poc\MapPOC\MapPOC\
 build_property.EnableComHosting = 
-build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.EnableGeneratedComInterfaceComImportInterop = false
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
@@ -51,3 +58,11 @@ build_metadata.AdditionalFiles.CssScope = b-lz92qg3ki9
 [C:/Users/rc_lo/source/repos/map-poc/MapPOC/MapPOC/Components/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-r0we0avtnu
+
+[C:/Users/rc_lo/source/repos/map-poc/MapPOC/MapPOC/Components/Map/MapComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xNYXBcTWFwQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-idb8tr6gwz
+
+[C:/Users/rc_lo/source/repos/map-poc/MapPOC/MapPOC/Components/Pages/Map.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNYXAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-z32i57iqug

@@ -1,10 +1,28 @@
 {
   "version": 2,
-  "dgSpecHash": "u71F+Bg5nUk=",
+  "dgSpecHash": "jupTWsElkB4=",
   "success": true,
   "projectFilePath": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\MapPOC.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly.server\\9.0.13\\microsoft.aspnetcore.components.webassembly.server.9.0.13.nupkg.sha512"
+    "C:\\Users\\rc_lo\\.nuget\\packages\\leafletforblazor\\2.4.6.26\\leafletforblazor.2.4.6.26.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.authorization\\9.0.1\\microsoft.aspnetcore.authorization.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.components\\9.0.1\\microsoft.aspnetcore.components.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.components.analyzers\\9.0.1\\microsoft.aspnetcore.components.analyzers.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.components.forms\\9.0.1\\microsoft.aspnetcore.components.forms.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.components.web\\9.0.1\\microsoft.aspnetcore.components.web.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly.server\\9.0.13\\microsoft.aspnetcore.components.webassembly.server.9.0.13.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.aspnetcore.metadata\\9.0.1\\microsoft.aspnetcore.metadata.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.1\\microsoft.extensions.dependencyinjection.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.1\\microsoft.extensions.dependencyinjection.abstractions.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.extensions.localization\\9.0.1\\microsoft.extensions.localization.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.extensions.localization.abstractions\\9.0.1\\microsoft.extensions.localization.abstractions.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.1\\microsoft.extensions.logging.abstractions.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.extensions.options\\9.0.1\\microsoft.extensions.options.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.1\\microsoft.extensions.primitives.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.jsinterop\\9.0.1\\microsoft.jsinterop.9.0.1.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.13\\microsoft.net.illink.tasks.9.0.13.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\mudblazor\\9.0.0\\mudblazor.9.0.0.nupkg.sha512",
+    "C:\\Users\\rc_lo\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
   ],
   "logs": []
 }

@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\services\\assetservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\services\\assetservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\services\\equipmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\services\\equipmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\layout\\navmenu.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\layout\\navmenu.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
@@ -21,6 +29,62 @@
     {
       "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\_imports.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\_imports.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\mappoc.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\mappoc.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\models\\equipmentmarker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\models\\equipmentmarker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\models\\controlpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\models\\controlpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\models\\maplayer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\models\\maplayer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\services\\mapservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\services\\mapservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\services\\alignmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\services\\alignmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\wwwroot\\js\\leaflet-imageoverlay-rotated.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\wwwroot\\js\\leaflet-imageoverlay-rotated.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\wwwroot\\js\\map-interop.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\wwwroot\\js\\map-interop.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\map\\mapcomponent.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\map\\mapcomponent.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\map\\mapcomponent.razor.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\map\\mapcomponent.razor.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\layout\\mainlayout.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\layout\\mainlayout.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\layout\\navmenu.razor.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\layout\\navmenu.razor.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\pages\\map.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\pages\\map.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|c:\\users\\rc_lo\\source\\repos\\map-poc\\mappoc\\mappoc\\components\\pages\\map.razor.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{876D41E4-6BB9-47A2-8037-3320D2147F3F}|MapPOC\\MapPOC.csproj|solutionrelative:mappoc\\components\\pages\\map.razor.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,7 +94,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 28,
+          "SelectedChildIndex": 32,
           "Children": [
             {
               "$type": "Bookmark",
@@ -141,38 +205,250 @@
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
             },
             {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "NavMenu.razor.css",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\NavMenu.razor.css",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Layout\\NavMenu.razor.css",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\NavMenu.razor.css",
+              "RelativeToolTip": "MapPOC\\Components\\Layout\\NavMenu.razor.css",
+              "ViewState": "AgIAADEAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-02-25T04:31:48.671Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "MainLayout.razor",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\MainLayout.razor",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Layout\\MainLayout.razor",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\MainLayout.razor",
+              "RelativeToolTip": "MapPOC\\Components\\Layout\\MainLayout.razor",
+              "ViewState": "AgIAABkAAAAAAAAAAIBJwBsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-25T04:31:36.724Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "MapComponent.razor.css",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Map\\MapComponent.razor.css",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Map\\MapComponent.razor.css",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Map\\MapComponent.razor.css",
+              "RelativeToolTip": "MapPOC\\Components\\Map\\MapComponent.razor.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-02-25T04:31:06.786Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "MapComponent.razor",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Map\\MapComponent.razor",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Map\\MapComponent.razor",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Map\\MapComponent.razor",
+              "RelativeToolTip": "MapPOC\\Components\\Map\\MapComponent.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-25T04:31:02.618Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "EquipmentService.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\EquipmentService.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Services\\EquipmentService.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\EquipmentService.cs",
+              "RelativeToolTip": "MapPOC\\Services\\EquipmentService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:30:07.463Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AssetService.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\AssetService.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Services\\AssetService.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\AssetService.cs",
+              "RelativeToolTip": "MapPOC\\Services\\AssetService.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAACEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:30:13.232Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "Map.razor.css",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Pages\\Map.razor.css",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Pages\\Map.razor.css",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Pages\\Map.razor.css",
+              "RelativeToolTip": "MapPOC\\Components\\Pages\\Map.razor.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-02-25T04:32:01.089Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "Map.razor",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Pages\\Map.razor",
+              "RelativeDocumentMoniker": "MapPOC\\Components\\Pages\\Map.razor",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Pages\\Map.razor",
+              "RelativeToolTip": "MapPOC\\Components\\Pages\\Map.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-25T04:31:56.38Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:22:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "MapService.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\MapService.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Services\\MapService.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\MapService.cs",
+              "RelativeToolTip": "MapPOC\\Services\\MapService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:29:53.683Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "MapPOC",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\MapPOC.csproj",
+              "RelativeDocumentMoniker": "MapPOC\\MapPOC.csproj",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\MapPOC.csproj",
+              "RelativeToolTip": "MapPOC\\MapPOC.csproj",
+              "ViewState": "AgIAAAcAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-02-25T04:29:28.702Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "EquipmentMarker.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Models\\EquipmentMarker.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Models\\EquipmentMarker.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Models\\EquipmentMarker.cs",
+              "RelativeToolTip": "MapPOC\\Models\\EquipmentMarker.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:29:34.848Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ControlPoint.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Models\\ControlPoint.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Models\\ControlPoint.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Models\\ControlPoint.cs",
+              "RelativeToolTip": "MapPOC\\Models\\ControlPoint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:29:40.545Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "MapLayer.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Models\\MapLayer.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Models\\MapLayer.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Models\\MapLayer.cs",
+              "RelativeToolTip": "MapPOC\\Models\\MapLayer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:29:45.974Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "map-interop.js",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\wwwroot\\js\\map-interop.js",
+              "RelativeDocumentMoniker": "MapPOC\\wwwroot\\js\\map-interop.js",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\wwwroot\\js\\map-interop.js",
+              "RelativeToolTip": "MapPOC\\wwwroot\\js\\map-interop.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAANAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-02-25T04:30:49.56Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "leaflet-imageoverlay-rotated.js",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\wwwroot\\js\\leaflet-imageoverlay-rotated.js",
+              "RelativeDocumentMoniker": "MapPOC\\wwwroot\\js\\leaflet-imageoverlay-rotated.js",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\wwwroot\\js\\leaflet-imageoverlay-rotated.js",
+              "RelativeToolTip": "MapPOC\\wwwroot\\js\\leaflet-imageoverlay-rotated.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-02-25T04:30:29.509Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "AlignmentService.cs",
+              "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\AlignmentService.cs",
+              "RelativeDocumentMoniker": "MapPOC\\Services\\AlignmentService.cs",
+              "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Services\\AlignmentService.cs",
+              "RelativeToolTip": "MapPOC\\Services\\AlignmentService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T04:30:01.533Z",
+              "EditorCaption": ""
+            },
+            {
               "$type": "Bookmark",
               "Name": "ST:0:0:{55f480fa-fbef-4386-8c1c-ea8d10c9f542}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "NavMenu.razor",
               "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\NavMenu.razor",
               "RelativeDocumentMoniker": "MapPOC\\Components\\Layout\\NavMenu.razor",
               "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Layout\\NavMenu.razor",
               "RelativeToolTip": "MapPOC\\Components\\Layout\\NavMenu.razor",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAAA4AAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAtwA4AAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-02-25T04:17:37.807Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "App.razor",
               "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\App.razor",
               "RelativeDocumentMoniker": "MapPOC\\Components\\App.razor",
               "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\App.razor",
               "RelativeToolTip": "MapPOC\\Components\\App.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABEAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-02-25T04:17:31.942Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Routes.razor",
               "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\Routes.razor",
               "RelativeDocumentMoniker": "MapPOC\\Components\\Routes.razor",
@@ -180,31 +456,30 @@
               "RelativeToolTip": "MapPOC\\Components\\Routes.razor",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-25T04:16:29.193Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-25T04:16:29.193Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "_Imports.razor",
               "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\_Imports.razor",
               "RelativeDocumentMoniker": "MapPOC\\Components\\_Imports.razor",
               "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Components\\_Imports.razor",
               "RelativeToolTip": "MapPOC\\Components\\_Imports.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAIBJwA0AAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-02-25T04:16:17.005Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Program.cs",
               "RelativeDocumentMoniker": "MapPOC\\Program.cs",
               "ToolTip": "C:\\Users\\rc_lo\\source\\repos\\map-poc\\MapPOC\\MapPOC\\Program.cs",
               "RelativeToolTip": "MapPOC\\Program.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAtwB0AAAAqAAAAAAAAAA==",
+              "ViewState": "AgIAAAwAAAAAAAAAAIBJwCUAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-02-25T04:15:08.803Z",
               "EditorCaption": ""

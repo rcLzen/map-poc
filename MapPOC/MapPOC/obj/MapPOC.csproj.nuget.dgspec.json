@@ -70,9 +70,23 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "LeafletForBlazor": {
+              "target": "Package",
+              "version": "[2.4.6.26, )"
+            },
             "Microsoft.AspNetCore.Components.WebAssembly.Server": {
               "target": "Package",
               "version": "[9.0.13, )"
+            },
+            "Microsoft.NET.ILLink.Tasks": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.13, )",
+              "autoReferenced": true
+            },
+            "MudBlazor": {
+              "target": "Package",
+              "version": "[9.0.0, )"
             }
           },
           "imports": [

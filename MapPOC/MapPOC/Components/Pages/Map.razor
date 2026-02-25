@@ -1,0 +1,30 @@
+@page "/map"
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Map - MapPOC</PageTitle>
+
+<div class="map-page">
+    <MapComponent @ref="_mapComponent"
+                  InitialLatitude="32.0853"
+                  InitialLongitude="34.7818"
+                  InitialZoom="13"
+                  OnMapClick="HandleMapClick" />
+</div>
+
+@if (_lastClick is not null)
+{
+    <MudAlert Severity="Severity.Info" Class="map-alert" Dense="true" NoIcon="true">
+        Clicked: @_lastClick.Value.Lat.ToString("F5"), @_lastClick.Value.Lng.ToString("F5")
+    </MudAlert>
+}
+
+@code {
+    private MapComponent? _mapComponent;
+    private (double Lat, double Lng)? _lastClick;
+
+    private void HandleMapClick((double Lat, double Lng) coords)
+    {
+        _lastClick = coords;
+        StateHasChanged();
+    }
+}
